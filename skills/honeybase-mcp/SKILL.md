@@ -74,5 +74,3 @@ The `get_forms_skill` / `get_graphql_api_skill` tools hand out those skills' hos
 ## Sharing this skill
 
 The folder `.claude/skills/honeybase-mcp/` is self-contained — copy it into any project's `.claude/skills/` (or `~/.claude/skills/`) and Claude loads it when asked to work with the Honeybase MCP. It is also hosted at `https://honeybase.ai/skills/honeybase-mcp/` (SKILL.md, version.json — compare `version.json` with the `version:` line above to know when to re-download). Pair it with honeybase-forms and honeybase-graphql-api for the full authoring surface.
-
-<!-- ci-push-test marker: the mirror should remove this -->
