@@ -1,0 +1,2086 @@
+
+"A date without a time-zone in the ISO-8601 calendar system using the format 1970-01-01"
+scalar LocalDate
+
+scalar Long
+
+"A date-time with a time-zone in the ISO-8601 calendar system using the format 1970-01-01T00:00:00Z[UTC]"
+scalar ZonedDateTime
+
+enum ChatPermissionMode {
+  AllowAll
+  AskPermission
+}
+
+enum ChatStatus {
+  AwaitingApproval
+  Failed
+  Idle
+  Interrupted
+  Running
+}
+
+enum ChatSubjectKind {
+  Agent
+  App
+  Home
+  Workflow
+}
+
+enum NotificationKind {
+  AgentBudgetExhausted
+  AgentBudgetThreshold
+  AvailabilityChangeProposed
+  AvailabilityChanged
+  Error
+  Info
+  OrganizationInvitation
+  RunCompleted
+  RunFailed
+  TaskAssigned
+  Warning
+}
+
+enum RunDirection {
+  Backward
+  Forward
+}
+
+input EmbeddedPageInput {
+  name: String!
+  url: String!
+}
+
+input FormSubmissionInput {
+  data: String!
+  submittedBy: Long!
+  submittedAt: String!
+}
+
+input JobScheduleInput {
+  webUserId: Long!
+  name: String!
+  description: String!
+  timezone: String!
+  startDate: String!
+  endDate: String
+  repeats: Boolean!
+  repeatWeekdays: [Int!]!
+  repeatIntervalWeeks: Int!
+  allDay: Boolean!
+  startMinute: Int
+  endMinute: Int
+  coverageMode: String!
+  processIds: [Long!]!
+  isPriority: Boolean!
+  reassignWork: Boolean!
+  reassignMethod: String!
+  "How window boundaries act on availability: Automatic writes the state and notifies; Notify only proposes the change via a notification"
+  applyMode: String!
+}
+
+input JsPackageInput {
+  name: String!
+  url: String!
+}
+
+"A key-value pair of String and RunNodeGql"
+input KVStringRunNodeGqlInput {
+  "Key"
+  key: String!
+  "Value"
+  value: RunNodeGqlInput!
+}
+
+"A key-value pair of String and String"
+input KVStringStringInput {
+  "Key"
+  key: String!
+  "Value"
+  value: String!
+}
+
+input MetadataBadgeInput {
+  key: String!
+  color: String!
+  colorCode: String
+  colorHex: String
+}
+
+input NodeConnectionInput {
+  connectionName: String!
+  fromNodeId: Long!
+  toNodeId: Long!
+  sourceHandle: String
+  targetHandle: String
+}
+
+input NodeGqlInput {
+  nodeId: Long!
+  workflowId: Long!
+  nodeName: String!
+  properties: NodePropertiesInput!
+  data: String!
+}
+
+input NodePropertiesInput {
+  x: Float!
+  y: Float!
+  width: Float
+  height: Float
+  description: String!
+}
+
+input PermissionsInput {
+  canManageTeams: Boolean
+  canManageUsers: Boolean
+  canManageIntegrations: Boolean
+  canManageReleases: Boolean
+  canListSecrets: Boolean
+  canManageSecrets: Boolean
+  canManageAgents: Boolean
+  canRunAgents: Boolean
+  canManageTaskViews: Boolean
+  canManageForms: Boolean
+  canQueryOrgDatabase: Boolean
+  canManageOrgDatabase: Boolean
+  canViewOrgDatabaseCredentials: Boolean
+  canChangeAvailabilityForOthers: Boolean
+  canBuildWorkflows: Boolean
+  canManageSchedules: Boolean
+  canManageTasks: Boolean
+  canViewRunHistory: Boolean
+  canOverrideTaskCompletion: Boolean
+}
+
+input ProcessSettingsInput {
+  timeoutMs: Long!
+  loopConcurrencyLimit: Int
+  onFailureEmail: String
+  onFailureNotifyUserIds: [Long!]!
+  onFailureNotifyTeamIds: [Long!]!
+}
+
+input RunNodeGqlInput {
+  runNodeId: Long!
+  runWorkflowId: Long!
+  data: String!
+  inputs: [KVStringStringInput!]!
+  output: String!
+  startedAt: String
+  finishedAt: String
+  agentRunId: Long
+  progress: String
+  usage: String
+}
+
+input TaskFormInput {
+  formId: Long!
+  name: String!
+  schemaSnapshot: String!
+  version: Int!
+  required: Boolean!
+  autoComplete: Boolean!
+  submission: FormSubmissionInput
+}
+
+input TaskViewColumnInput {
+  key: String!
+}
+
+input TaskViewFiltersInput {
+  processId: Long
+  assignedTo: [Long!]!
+  priorities: [String!]!
+  teamIds: [Long!]!
+  includeCompleted: Boolean!
+  dueFrom: LocalDate
+  dueTo: LocalDate
+  searchQuery: String
+  dueFromTime: String
+  dueToTime: String
+}
+
+input TaskViewInput {
+  processId: Long
+  name: String!
+  filters: TaskViewFiltersInput!
+  columns: [TaskViewColumnInput!]!
+  sort: [TaskViewSortInput!]!
+}
+
+input TaskViewSortInput {
+  key: String!
+  descending: Boolean!
+}
+
+input WorkflowDataGqlInput {
+  workflow: WorkflowInput!
+  nodes: [NodeGqlInput!]!
+  nodeConnections: [NodeConnectionInput!]!
+}
+
+input WorkflowInput {
+  workflowId: Long!
+  publicId: String
+  processId: Long!
+  name: String!
+  description: String
+  majorVersion: Int
+  minorVersion: Int
+  createdAt: String
+  updatedAt: String
+}
+
+input WorkflowTaskInput {
+  taskId: Long!
+  publicId: String
+  organizationId: Long!
+  assignedTo: Long!
+  relatedWorkflow: Long
+  teamId: Long
+  priority: String!
+  dueDate: LocalDate!
+  completedDate: LocalDate
+  name: String!
+  description: String!
+  metadata: String
+  notes: String
+  dedupId: String
+  embeddedPages: [EmbeddedPageInput!]!
+  metadataBadges: [MetadataBadgeInput!]!
+  form: TaskFormInput
+  dueAt: ZonedDateTime
+  completedAt: ZonedDateTime
+  createdAt: ZonedDateTime
+  completionLocked: Boolean
+}
+
+type AccessToken {
+  token: String!
+  expiresIn: Long!
+  tokenType: String!
+}
+
+type Agent {
+  agentId: Long!
+  publicId: String!
+  organizationId: Long!
+  name: String!
+  description: String!
+  paused: Boolean!
+  releasedVersionId: Long
+  monthlyTokenBudget: Long
+  budgetNotifyUserIds: [Long!]!
+  budgetNotifyEmails: String
+  hasExternalApiKey: Boolean!
+  appInvocable: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type AgentData {
+  agent: Agent!
+  draft: AgentVersion!
+  releasedVersion: AgentVersion
+}
+
+type AgentMutations {
+  "Create an agent with an empty draft version"
+  createAgent(name: String!, description: String!): AgentData
+  "Update agent identity and monthly token budget"
+  updateAgent(agentId: Long!, name: String!, description: String!, monthlyTokenBudget: Long, budgetNotifyUserIds: [Long!], budgetNotifyEmails: String): Agent
+  "Update the agent's draft version (prompt, connection, model, settings)"
+  updateAgentDraft(agentId: Long!, systemPrompt: String!, integrationId: Long, model: String!, "AgentSettings JSON (tool refs, brakes, structured output)" settings: String!): AgentData
+  "Stamp the draft as the next release and clone a fresh draft. Also requires canManageReleases."
+  releaseAgent(agentId: Long!): AgentData
+  "Pause/unpause an agent (paused agents refuse runs)"
+  setAgentPaused(agentId: Long!, paused: Boolean!): Agent
+  "Allow apps that declare this agent to invoke it. Requires canManageAgents AND canManageReleases, and a released version: agent tools run with the agent's authority, so this hands that authority to every user of every app that declares it"
+  setAgentAppInvocable(agentId: Long!, appInvocable: Boolean!): Agent
+  "Delete an agent, its versions, sessions and run history"
+  deleteAgent(agentId: Long!): Boolean
+  "Set the org-wide monthly token budget across all agents (None = unlimited)"
+  setOrgAgentBudget(monthlyTokenBudget: Long): Boolean
+  "Send a test-chat message: runs the DRAFT version (streams via watchAgentRun)"
+  startTestChatTurn(agentId: Long!, content: String!): TestChatTurn
+  "Approve / reject-with-message / edit-args-then-approve a pending tool call"
+  respondToAgentToolCall(agentRunId: Long!, toolCallId: String!, approved: Boolean!, "Shown to the model on rejection so it adapts" message: String, "Edited arguments JSON (edit-args-then-approve)" editedArgs: String): Boolean
+  "Stop an in-flight agent run"
+  cancelAgentRun(agentRunId: Long!): Boolean
+  "Close the caller's test session; the next turn starts fresh"
+  resetTestSession(agentId: Long!): Boolean
+  "Generate or rotate the agent's external API key (the credential for its per-agent MCP endpoint). Returns the plaintext key ONCE; rotating invalidates the previous key immediately. Requires a released version."
+  generateAgentExternalKey(agentId: Long!): String
+  "Clear the agent's external API key: the endpoint 401s every request until a new key is generated"
+  revokeAgentExternalKey(agentId: Long!): Boolean
+}
+
+type AgentQueries {
+  "List the organization's agents. Requires canRunAgents or canManageAgents."
+  listAgents: [Agent!]
+  "An agent with its editable draft and current release"
+  getAgent(agentId: Long, publicId: String): AgentData
+  "Recent runs of an agent, newest first (bounded)"
+  listAgentRuns(agentId: Long!, limit: Int): [AgentRun!]
+  "Org-wide filterable run history (agent/status/source/date), newest first (bounded)"
+  listOrgAgentRuns("Optional agent filter" agentId: Long, "Optional status filter" status: String, "Optional trigger-source filter" triggerSource: String, "Optional lower bound (ISO date or datetime, inclusive)" from: String, "Optional upper bound (ISO date or datetime, inclusive)" to: String, "Max runs, 1-100 (default 25)" limit: Int, "Row offset for pagination (default 0)" offset: Int): [AgentRun!]
+  "Runs that invoked a given Agent tool, newest first (bounded)"
+  listToolRunHistory(toolId: Long!, from: String, to: String, limit: Int, offset: Int): [AgentRun!]
+  "One run with its per-step ledger"
+  getAgentRun(agentRunId: Long!): AgentRunDetail
+  "The caller's active test-chat session with transcript and live run, if any"
+  getTestSession(agentId: Long!): TestSessionData
+  "Server-side usage aggregates: daily buckets plus month-to-date budget consumption"
+  agentUsage("Window in days for the daily buckets (1-90, default 30)" days: Int): AgentUsage
+  "The built-in agent tools (web_search, web_fetch) with availability on this server"
+  listBuiltinTools: [BuiltinToolGql!]
+  "The native agent tools one integration brings with it, with their derived tool names"
+  listNativeTools(integrationId: Long!): [NativeToolGql!]
+}
+
+type AgentRun {
+  agentRunId: Long!
+  agentId: Long!
+  agentVersionId: Long!
+  organizationId: Long!
+  triggerSource: String!
+  status: String!
+  model: String!
+  agentSessionId: Long
+  turns: Int!
+  inputTokens: Long!
+  outputTokens: Long!
+  estimatedCost: Float!
+  errorSummary: String
+  langfuseTraceId: String
+  parentAgentRunId: Long
+  triggerRef: AgentRunTriggerRef
+  enqueuedAt: String!
+  startedAt: String
+  finishedAt: String
+  initiatedByWebUserId: Long
+  appId: Long
+}
+
+type AgentRunChildSummary {
+  agentRunId: Long!
+  agentName: String!
+  status: String!
+  inputTokens: Long!
+  outputTokens: Long!
+  enqueuedAt: String!
+}
+
+type AgentRunDetail {
+  run: AgentRun!
+  steps: [AgentRunStep!]!
+  agentName: String!
+  children: [AgentRunChildSummary!]!
+}
+
+type AgentRunEventGql {
+  agentRunId: Long!
+  agentSessionId: Long!
+  seq: Long!
+  eventType: String!
+  payload: String!
+}
+
+type AgentRunStep {
+  agentRunStepId: Long!
+  agentRunId: Long!
+  seq: Long!
+  kind: String!
+  name: String!
+  payload: String!
+  isError: Boolean!
+  startedAt: String!
+  finishedAt: String
+}
+
+type AgentRunTriggerRef {
+  processId: Long!
+  runWorkflowId: Long
+  nodeName: String
+}
+
+type AgentSession {
+  agentSessionId: Long!
+  organizationId: Long!
+  agentId: Long!
+  subjectKind: String!
+  subjectId: Long
+  webUserId: Long
+  status: String!
+  lastEventSeq: Long!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type AgentSessionMessage {
+  messageId: Long!
+  agentSessionId: Long!
+  seq: Long!
+  role: String!
+  content: String!
+}
+
+type AgentSettings {
+  toolRefs: [AgentToolRef!]!
+  maxTurns: Int!
+  maxRunTokens: Long
+  maxAutoRunsBetweenApprovals: Int!
+  temperature: Float
+  structuredOutputSchema: String
+}
+
+type AgentSubscriptions {
+  "Subscribe to an agent run's live events (text deltas, tool calls, approvals)"
+  watchAgentRun(agentRunId: Long!, "Replay persisted events with seq > fromSeq before going live (reload-resilience)" fromSeq: Long): [AgentRunEventGql!]
+}
+
+type AgentToolRef {
+  toolId: Long
+  agentId: Long
+  builtin: String
+  native: NativeToolRef
+  policy: String!
+}
+
+type AgentUsage {
+  daily: [AgentUsageDay!]!
+  perAgent: [AgentUsageAgent!]!
+  orgMonthTokens: Long!
+  orgMonthlyTokenBudget: Long
+  perApp: [AgentUsageApp!]!
+}
+
+type AgentUsageAgent {
+  agentId: Long!
+  name: String!
+  monthTokens: Long!
+  monthCost: Float!
+  monthlyTokenBudget: Long
+}
+
+type AgentUsageApp {
+  appId: Long!
+  name: String!
+  monthTokens: Long!
+  monthCost: Float!
+  monthRuns: Long!
+}
+
+type AgentUsageDay {
+  day: String!
+  agentId: Long!
+  triggerSource: String!
+  model: String!
+  inputTokens: Long!
+  outputTokens: Long!
+  estimatedCost: Float!
+  runCount: Long!
+  appId: Long
+}
+
+type AgentVersion {
+  agentVersionId: Long!
+  agentId: Long!
+  majorVersion: Int
+  minorVersion: Int
+  systemPrompt: String!
+  integrationId: Long
+  model: String!
+  settings: AgentSettings!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type AiChatMutations {
+  "Create an AI copilot chat on a process"
+  createChat(processId: Long, "Chat subject kind: workflow | agent | home" subjectKind: String, subjectId: Long, name: String!, "ChatSettings json (mode, maxToolCalls, integrationId, model)" settings: String, "Which surface opened this chat: direct | fix_with_barry | home. Metrics only - gates nothing." origin: String): WorkflowChat
+  "Send a user message and start the copilot's turn (streams via watchChat)"
+  sendChatMessage(chatId: Long!, content: String!, "Workflow chats: the current canvas graph — becomes the chat's working graph" workflowData: WorkflowDataGqlInput, "Agent chats: the builder form's AgentDraftSnapshot JSON — becomes the chat's working draft" agentDraft: String, "App chats: the editor's AppDraftSnapshot JSON — a MANIFEST of the draft (identity, content digest, paths and sizes), never file contents. App files live in app_file and Barry writes them through AppService directly, so there is no working copy to carry" appSnapshot: String, "Home chats: the HomeSnapshot JSON (the organization the chat is scoped to)" homeContext: String, integrationId: Long!, model: String!, "Public ids of already-uploaded workflow files to attach to this message (pasted images). Ids only: the server rebuilds each reference from its own row, so a name, type or size claimed by the client is never believed. Capped per message and by total bytes; every attachment is replayed on each subsequent turn of the chat." files: [String!]!): Boolean
+  "Stop the in-flight copilot turn"
+  cancelChatTurn(chatId: Long!): Boolean
+  "Approve or reject a pending tool call (AskPermission mode)"
+  respondToToolCall(chatId: Long!, toolCallId: String!, approved: Boolean!, "Rejections only: an optional free-text reply the copilot sees verbatim (it may carry the content you actually want, e.g. a corrected form schema). Capped server-side." note: String, "Input-request cards only: an InputClaim JSON saying what the user created (e.g. {\"Integration\":{\"integrationId\":42}}). It is a POINTER, never a fact and never tool arguments — the server re-reads what it points at under your own permissions and builds the copilot's result from what it finds, so a forged or cross-organization id yields an 'unavailable' result rather than anything the model believes." inputClaim: String): Boolean
+  "Update a chat's settings (mode, tool-call limit, model)"
+  updateChatSettings(chatId: Long!, settings: String!): WorkflowChat
+  "Rename a chat"
+  renameChat(chatId: Long!, name: String!): WorkflowChat
+  "Delete a chat and its transcript"
+  deleteChat(chatId: Long!): Boolean
+}
+
+type AiChatQueries {
+  "List the AI copilot chats of a process, newest first"
+  listChats(processId: Long, "Chat subject kind: workflow | agent | home" subjectKind: String, subjectId: Long): [WorkflowChat!]
+  "Get a chat with one page of its transcript, newest page first (cursor by seq)"
+  getChat(chatId: Long!, beforeSeq: Long, limit: Int): ChatDataGql
+}
+
+type AiChatSubscriptions {
+  "Subscribe to a chat's live events (text deltas, tool calls, diffs, approvals)"
+  watchChat(chatId: Long!, "Replay persisted events with seq > fromSeq from the DB before going live (reload-resilience)" fromSeq: Long): [ChatEventGql!]
+}
+
+type AiModelInfo {
+  id: String!
+  provider: String!
+  mode: String
+  maxInputTokens: Int
+  maxOutputTokens: Int
+  supportsFunctionCalling: Boolean!
+}
+
+type ApiKeyMutations {
+  "Create an organization API key for the GraphQL API (name + explicit permission set + optional expiry). Returns the plaintext key exactly once. Requires Owner or Admin role; API-key-authenticated requests can never manage keys."
+  createApiKey(name: String!, permissions: PermissionsInput!, expiresAt: ZonedDateTime): CreatedApiKey
+  "Replace an API key's permission set. Requires Owner or Admin role."
+  updateApiKeyPermissions(orgApiKeyId: Long!, permissions: PermissionsInput!): OrgApiKey
+  "Rotate (cycle) an API key: new key material on the same key (name, permissions and expiry are kept); the old key stops working immediately. Returns the new plaintext key exactly once. Requires Owner or Admin role."
+  rotateApiKey(orgApiKeyId: Long!): String
+  "Revoke (delete) an API key; it stops working immediately. Requires Owner or Admin role."
+  revokeApiKey(orgApiKeyId: Long!): Boolean
+}
+
+type ApiKeyQueries {
+  "List the organization's API keys — names, display prefixes, permissions and expiry; the key material is never returned. Requires Owner or Admin role."
+  listApiKeys: [OrgApiKey!]
+}
+
+type App {
+  appId: Long!
+  publicId: String!
+  organizationId: Long!
+  name: String!
+  description: String!
+  releasedVersionId: Long
+  paused: Boolean!
+  createdBy: Long
+  createdAt: String!
+  updatedAt: String!
+}
+
+type AppAgent {
+  appId: Long!
+  agentId: Long!
+  agentPublicId: String!
+  name: String!
+  description: String!
+  invocable: Boolean!
+  createdAt: String!
+}
+
+type AppBuild {
+  appBuildId: Long!
+  publicId: String!
+  organizationId: Long!
+  appId: Long!
+  appVersionId: Long!
+  status: String!
+  failureReason: String
+  sourceDigest: String!
+  templateVersion: String!
+  artifactBytes: Long!
+  log: String!
+  durationMs: Long
+  createdBy: Long
+  createdAt: String!
+  updatedAt: String!
+}
+
+type AppData {
+  app: App!
+  draft: AppVersion!
+  releasedVersion: AppVersion
+  hosts: [AppHost!]!
+  files: [AppFileSummary!]!
+  agents: [AppAgent!]!
+}
+
+type AppFile {
+  appFileId: Long!
+  appVersionId: Long!
+  path: String!
+  content: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type AppFileSummary {
+  path: String!
+  sizeBytes: Int!
+  updatedAt: String!
+}
+
+type AppHost {
+  appId: Long!
+  channel: String!
+  hostId: String!
+}
+
+type AppMutations {
+  "Create an app: two origins (draft and release), a draft version, and the starter scaffold"
+  createApp(name: String!, description: String!): AppData
+  "Rename an app or change its description"
+  updateApp(publicId: String!, name: String!, description: String!): App
+  "Pause an app: its release origin answers 503 while its draft stays editable"
+  setAppPaused(publicId: String!, paused: Boolean!): App
+  "Delete an app, its versions, files and origins"
+  deleteApp(publicId: String!, "Required to delete a RELEASED app: doing so takes down a URL people may have bookmarked" confirmReleased: Boolean!): Boolean
+  "Create or replace one file in the app's DRAFT. No mutation names a version: a released version is unreachable from every write path"
+  writeAppFile(publicId: String!, "Repo-relative, under src/ or public/. src/honeybase/ is reserved for the generated SDK" path: String!, content: String!): AppFile
+  "Delete one file from the app's draft"
+  deleteAppFile(publicId: String!, path: String!): Boolean
+  "Move one file within the app's draft"
+  renameAppFile(publicId: String!, from: String!, to: String!): AppFile
+  "Release the draft: stamp it, point the app at it, and clone a fresh draft. Refused unless the draft matches a build that succeeded"
+  releaseApp(publicId: String!): AppData
+  "Queue a build of the app's draft and return its row immediately. Watch it with subscriptions.apps.watchAppBuild"
+  startAppBuild(publicId: String!): AppBuild
+  "Mint a single-use, short-lived ticket that signs the caller in to one of their app's origins. The app never sees the Honeybase session"
+  mintAppTicket("Which of the app's two origins (draft or release) to sign in to" appHostId: String!): String
+  "Replace the agents this app may invoke. Requires canManageReleases, not just build access: every user of the app can then spend the organization's AI budget through them"
+  setAppAgents(publicId: String!, "The COMPLETE list of agents this app may invoke. Anything omitted is undeclared" agentPublicIds: [String!]!): [AppAgent!]
+}
+
+type AppQueries {
+  "List the organization's apps"
+  listApps: [App!]
+  "One app with its draft, current release, both origins and the draft's file list (paths and sizes, not contents)"
+  getApp(publicId: String!): AppData
+  "Read one file from the app's DRAFT. A released version's files are not addressable"
+  readAppFile(publicId: String!, path: String!): AppFile
+  "One build of an app"
+  getAppBuild(publicId: String!): AppBuild
+  "Recent builds of an app, newest first"
+  listAppBuilds(publicId: String!): [AppBuild!]
+}
+
+type AppSubscriptions {
+  "Stream a build's row until it reaches a terminal state (succeeded or failed)"
+  watchAppBuild(publicId: String!): [AppBuild!]
+}
+
+type AppVersion {
+  appVersionId: Long!
+  appId: Long!
+  majorVersion: Int
+  minorVersion: Int
+  templateVersion: String!
+  contentDigest: String!
+  activeBuildId: Long
+  createdAt: String!
+  updatedAt: String!
+}
+
+type AuthMutations {
+  "Register a new user and organization, returns auth tokens"
+  register(email: String!, firstName: String!, lastName: String, password: String!, organizationName: String!, registrationToken: String!): AuthTokens
+}
+
+type AuthQueries {
+  "Email of signed user"
+  whoAmI: UserData
+}
+
+type AuthTokens {
+  accessToken: AccessToken!
+  refreshToken: RefreshToken!
+}
+
+type AvailabilityEvent {
+  availabilityEventId: Long!
+  subjectWebUserId: Long!
+  actorWebUserId: Long
+  source: String!
+  jobScheduleId: Long
+  processId: Long
+  previous: Boolean!
+  next: Boolean!
+  createdAt: String!
+}
+
+type AvailabilityInterval {
+  date: String!
+  startMinute: Int!
+  endMinute: Int!
+  available: Boolean!
+  notAcceptingProcessIds: [Long!]!
+  source: String
+  jobScheduleId: Long
+}
+
+type AvailabilityMutations {
+  "Set a user's global availability switch (self, or others with the canChangeAvailabilityForOthers grant)"
+  setAvailable(webUserId: Long!, available: Boolean!): UserAvailability
+  "Set whether a user accepts tasks of a process (self, or others with the canChangeAvailabilityForOthers grant)"
+  setProcessAccepting(webUserId: Long!, processId: Long!, accepting: Boolean!): UserAvailability
+  "Recompute the reassignment plan inside a transaction, move the movable tasks to accepting teammates and notify them. Returns the plan actually applied (can differ from a preview). Same permission gate as the availability toggles."
+  applyReassignment(webUserId: Long!, processId: Long, method: String!): ReassignPlan
+}
+
+type AvailabilityQueries {
+  "A user's availability state: global switch plus stored per-process deviations (absent = accepting)"
+  availability(webUserId: Long!): UserAvailability
+  "Per-process control-panel summaries for a user, with bounded pending/covering counts"
+  availabilitySummaries(webUserId: Long!): [ProcessAvailabilitySummary!]
+  "Dry-run reassignment preview: classify a user's open tasks (all processes, or one) as movable, no-teammate-accepting or directly-assigned, with the picked recipient per movable task (method defaults to LeastWork; pass the method you will apply with). Nothing moves."
+  planReassignment(webUserId: Long!, processId: Long, method: String): ReassignPlan
+  "Actual availability intervals per user for an ISO date range in the given timezone, replayed from the availability event log; the right edge is clamped at now (the future belongs to schedule rules)"
+  availabilityIntervals(webUserIds: [Long!]!, from: String!, to: String!, timezone: String!): [UserAvailabilityIntervals!]
+  "The signed-in user's own at-a-glance state for the header chips: global switch, how many processes they are accepting out of the org total, and how many pending tasks are assigned to them. Cheap enough to refresh often; use availabilitySummaries for the full per-process panel."
+  myWorkSummary: MyWorkSummary
+}
+
+"A built-in agent tool: implemented server-side, no backing workflow. `enabled = false` means the server lacks the capability (web_search without an Exa API key)."
+type BuiltinToolGql {
+  key: String!
+  name: String!
+  description: String!
+  access: String!
+  enabled: Boolean!
+}
+
+type ChatDataGql {
+  chat: WorkflowChat!
+  messages: [WorkflowChatMessage!]!
+  hasMore: Boolean!
+}
+
+type ChatEventGql {
+  chatId: Long!
+  seq: Long!
+  eventType: String!
+  payload: String!
+}
+
+type ChatSettings {
+  mode: ChatPermissionMode!
+  maxToolCalls: Int!
+  integrationId: Long
+  model: String
+}
+
+type CreateProcessResultGql {
+  processData: ProcessData!
+  workflowData: WorkflowDataGql!
+}
+
+type CreateUserResult {
+  outcome: String!
+  user: UserData
+  invitationId: Long
+}
+
+"A freshly created API key. plaintextKey is returned exactly once — it is never stored and cannot be recovered."
+type CreatedApiKey {
+  apiKey: OrgApiKey!
+  plaintextKey: String!
+}
+
+type EmbeddedPage {
+  name: String!
+  url: String!
+}
+
+type EndpointMutations {
+  "Create an Endpoint: a kind='endpoint' process, unpaused, with a draft workflow seeded with a Webhook Trigger"
+  createEndpoint("Unique within the org, across processes AND endpoints" name: String!, description: String!): ProcessData
+  "Delete an endpoint and its process"
+  deleteEndpoint(processId: Long!): Boolean
+}
+
+type EndpointQueries {
+  "List the organization's Endpoints (kind='endpoint' processes). Deliberately disjoint from processes.listProcesses"
+  listEndpoints: [ProcessData!]
+}
+
+type Folder {
+  folderId: Long!
+  organizationId: Long!
+  scope: String!
+  name: String!
+}
+
+type FolderAssignment {
+  entityId: Long!
+  folderId: Long!
+}
+
+type Form {
+  formId: Long!
+  publicId: String!
+  name: String!
+  description: String!
+  schema: String!
+  version: Int!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type FormMutations {
+  "Create a reusable form definition (SurveyJS JSON). The schema is validated against an allowlist of safe question types. Requires canManageForms."
+  createForm(name: String!, description: String!, schema: String!): Form
+  "Update a form definition (bumps its version). Requires canManageForms."
+  updateForm(formId: Long!, name: String!, description: String!, schema: String!): Form
+  "Soft-delete a form definition. Already-attached tasks keep their snapshot. Requires canManageForms."
+  deleteForm(formId: Long!): Boolean
+}
+
+type FormQueries {
+  "List the organization's reusable form definitions (for attaching to tasks)."
+  listForms: [Form!]
+  "One form definition, including its SurveyJS schema. Provide exactly one of `formId` (internal numeric id) or `publicId` (UUID)."
+  getForm(formId: Long, publicId: String): Form
+}
+
+type FormShare {
+  formShareId: Long!
+  formId: Long!
+  token: String!
+  kind: String!
+  passwordRequired: Boolean!
+  expiresAt: String
+  maxResponses: Int
+  responseCount: Int!
+  schemaVersion: Int!
+  createdAt: String!
+  revokedAt: String
+}
+
+type FormShareMutations {
+  "Share a form as a public link that anyone can fill without an account. Freezes the form's current schema and version onto the link (editing the form later does not change what the link serves). Optional password (a speed bump, not a security boundary — it travels next to the link), expiry and maximum number of responses; `maxResponses: 1` makes it single-use. Requires canManageForms."
+  createFormShare(formId: Long!, password: String, expiresAt: ZonedDateTime, maxResponses: Int): FormShare
+  "Kill a share link. Final for that token — it is never reactivated, and the responses it collected stay attached to it. Use rotateFormShare to re-share. Returns false if it was already revoked. Requires canManageForms."
+  revokeFormShare(formShareId: Long!): Boolean
+  "Revoke a link and issue a replacement with a NEW token, keeping the same expiry, response cap and frozen schema version. The password carries over unless `newPassword` replaces it. Requires canManageForms."
+  rotateFormShare(formShareId: Long!, newPassword: String): FormShare
+  "Move a live link onto the form's current definition, appending a new frozen version. Responses already collected keep the version they answered. Fails if the link already serves the latest version, or has been revoked. Requires canManageForms."
+  pushFormShareSchema(formShareId: Long!): FormShare
+}
+
+type FormShareQueries {
+  "Public share links for one form, newest first, including revoked ones (they are history, and the responses they collected stay attached to them). Requires canManageForms."
+  listFormShares(formId: Long!): [FormShare!]
+}
+
+type FormSubmission {
+  data: String!
+  submittedBy: Long!
+  submittedAt: String!
+}
+
+type FormUploadField {
+  name: String!
+  value: String!
+}
+
+type FormUploadTicket {
+  url: String!
+  objectKey: String!
+  fields: [FormUploadField!]!
+}
+
+type Integration {
+  integrationId: Long!
+  publicId: String!
+  organizationId: Long!
+  integrationType: String!
+  name: String!
+  enabled: Boolean!
+  config: String!
+  infisicalCredentialsRef: String!
+}
+
+type IntegrationMutations {
+  "Create a new integration (requires canManageIntegrations permission)"
+  createIntegration(integrationType: String!, name: String!, config: String!, secret: String!): Integration
+  "Update an integration name, enabled and config (requires canManageIntegrations permission)"
+  updateIntegration(integrationId: Long!, name: String!, enabled: Boolean!, config: String!, secret: String): Integration
+  "Delete an integration (requires canManageIntegrations permission)"
+  deleteIntegration(integrationId: Long!): Boolean
+  "Test a database connection with the given parameters"
+  testConnection(integrationType: String!, config: String!, secret: String, integrationId: Long): String
+  "Execute the Access Token exchange request and return the redacted request/response with token-found indicators as JSON"
+  testAccessToken(secret: String!, integrationId: Long): String
+  "Execute the OAuth Client Credentials token request and return the redacted request/response with token-found indicator as JSON"
+  testClientCredentials(secret: String!, integrationId: Long): String
+  "Generate a JSON Schema using an AI integration + model, returning the schema as a JSON string"
+  generateAiJsonSchema(integrationId: Long!, model: String!, prompt: String!): String
+}
+
+type IntegrationQueries {
+  "List all integrations in the current organization"
+  listIntegrations: [Integration!]
+  "Get a specific integration by numeric id or public id (exactly one)"
+  getIntegration(integrationId: Long, publicId: String): Integration
+  "Get an integration's stored secret with all secret values redacted, for editing"
+  getIntegrationRedactedSecret(integrationId: Long!): String
+  "List the spreadsheets reachable by a Google Sheets integration"
+  listGoogleSheetsSpreadsheets(integrationId: Long!): [SpreadsheetRef!]
+  "List the sheets (tabs) within a spreadsheet"
+  listGoogleSheetsSheets(integrationId: Long!, spreadsheetId: String!): [SheetRef!]
+  "List the column headers (first row) of a sheet"
+  listGoogleSheetsColumns(integrationId: Long!, spreadsheetId: String!, sheetName: String!): [String!]
+  "List the channels reachable by a Slack integration"
+  listSlackChannels(integrationId: Long!): [SlackChannelRef!]
+  "List the users (members) of a Slack workspace"
+  listSlackUsers(integrationId: Long!): [SlackUserRef!]
+  "List the approved message templates of a WhatsApp Business integration"
+  listWhatsappTemplates(integrationId: Long!): [WhatsappTemplateRef!]
+  "List the AI providers available from the LiteLLM model catalog"
+  listAiProviders: [String!]
+  "List the models offered by a given AI provider"
+  listAiModels(provider: String!): [AiModelInfo!]
+  "Whether the Honeybase-owned Google OAuth app is configured on this server"
+  googleOAuthAvailable: Boolean
+  "Live schema introspection (tables, columns, primary keys, unique keys) of a Postgres/MySQL/OracleDB integration's database, for the Fetch SQL / Mutate SQL editors. Requires an enabled SQL integration in the caller's organization. For the organization database use orgDatabaseSchema."
+  sqlIntegrationSchema(integrationId: Long!): OrgDbSchema
+}
+
+type InvitationPreview {
+  invitationId: Long!
+  organizationName: String!
+  roleName: String!
+  invitedByName: String!
+  expiresAt: String!
+  status: String!
+  isExpired: Boolean!
+  isForCurrentUser: Boolean!
+}
+
+type JobSchedule {
+  jobScheduleId: Long!
+  organizationId: Long!
+  webUserId: Long!
+  name: String!
+  description: String!
+  timezone: String!
+  startDate: String!
+  endDate: String
+  repeats: Boolean!
+  repeatWeekdays: [Int!]!
+  repeatIntervalWeeks: Int!
+  allDay: Boolean!
+  startMinute: Int
+  endMinute: Int
+  coverageMode: String!
+  processIds: [Long!]!
+  isPriority: Boolean!
+  reassignWork: Boolean!
+  reassignMethod: String!
+  applyMode: String!
+}
+
+type JsPackage {
+  name: String!
+  url: String!
+}
+
+type JsPackageValidationResult {
+  name: String!
+  url: String!
+  status: String!
+  errorMessage: String
+}
+
+"A key-value pair of String and RunNodeGql"
+type KVStringRunNodeGql {
+  "Key"
+  key: String!
+  "Value"
+  value: RunNodeGql!
+}
+
+"A key-value pair of String and String"
+type KVStringString {
+  "Key"
+  key: String!
+  "Value"
+  value: String!
+}
+
+type MetadataBadge {
+  key: String!
+  color: String!
+  colorCode: String
+  colorHex: String
+}
+
+type Mutations {
+  "Authentication mutations (login, token refresh)"
+  auth: AuthMutations!
+  "User management mutations"
+  users: UserMutations!
+  "Organization management mutations"
+  organizations: OrganizationMutations!
+  "Process and workflow mutations"
+  processes: ProcessMutations!
+  "Team management mutations"
+  teams: TeamMutations!
+  "Task management mutations"
+  tasks: TaskMutations!
+  "Saved task view mutations"
+  taskViews: TaskViewMutations!
+  "Integration management mutations"
+  integrations: IntegrationMutations!
+  "Organization secret mutations"
+  secrets: SecretMutations!
+  "Organization API key mutations"
+  apiKeys: ApiKeyMutations!
+  "Organization database (Neon) mutations"
+  orgDatabase: OrgDatabaseMutations!
+  "Job schedule mutations"
+  schedules: ScheduleMutations!
+  "Availability (control panel) mutations"
+  availability: AvailabilityMutations!
+  "AI workflow copilot mutations"
+  aiChat: AiChatMutations!
+  "Notification (bell/badge) mutations"
+  notifications: NotificationMutations!
+  "OAuth (MCP connector) consent-flow mutations"
+  oauth: OAuthMutations!
+  "Agent Builder mutations"
+  agents: AgentMutations!
+  "Agent tool mutations"
+  tools: ToolMutations!
+  "Endpoint mutations"
+  endpoints: EndpointMutations!
+  "AI App Builder mutations"
+  apps: AppMutations!
+  "Reusable form library mutations"
+  forms: FormMutations!
+  "Public form share link mutations"
+  formShares: FormShareMutations!
+  "Folder and tag (list view organization) mutations"
+  organize: OrganizeMutations!
+}
+
+type MyWorkSummary {
+  webUserId: Long!
+  available: Boolean!
+  acceptingProcesses: Int!
+  totalProcesses: Int!
+  pendingTasks: Long!
+}
+
+"A native agent tool: implemented server-side and bound to one integration, no backing workflow. `name` is the derived function name (`<integration_slug>_<action>`) before any collision suffix."
+type NativeToolGql {
+  key: String!
+  integrationId: Long!
+  name: String!
+  description: String!
+  access: String!
+}
+
+type NativeToolRef {
+  key: String!
+  integrationId: Long!
+}
+
+type NodeConnection {
+  connectionName: String!
+  fromNodeId: Long!
+  toNodeId: Long!
+  sourceHandle: String
+  targetHandle: String
+}
+
+type NodeGql {
+  nodeId: Long!
+  workflowId: Long!
+  nodeName: String!
+  properties: NodeProperties!
+  data: String!
+}
+
+type NodeProperties {
+  x: Float!
+  y: Float!
+  width: Float
+  height: Float
+  description: String!
+}
+
+type Notification {
+  notificationId: Long!
+  kind: NotificationKind!
+  title: String!
+  message: String!
+  metadata: String
+  createdAt: String!
+  read: Boolean!
+}
+
+type NotificationMutations {
+  "Mark one of the signed-in user's notifications read"
+  markNotificationRead(notificationId: Long!): Boolean
+  "Mark all of the signed-in user's notifications read"
+  markAllNotificationsRead: Boolean
+  "Delete one of the signed-in user's notifications"
+  deleteNotification(notificationId: Long!): Boolean
+  "Delete ALL of the signed-in user's notifications, read and unread"
+  deleteAllNotifications: Boolean
+}
+
+type NotificationQueries {
+  "The signed-in user's notifications, newest first (bounded by limit)"
+  listNotifications(unreadOnly: Boolean, limit: Int): [Notification!]
+}
+
+type NotificationSubscriptions {
+  "Subscribe to the signed-in user's live notifications (the bell/badge)"
+  watchNotifications: [Notification!]
+}
+
+type OAuthConsentRequestGql {
+  challenge: String!
+  clientName: String
+  requestedScopes: [String!]!
+}
+
+type OAuthMutations {
+  "Accept a pending OAuth login challenge as the signed-in user; returns the URL the browser must follow"
+  acceptLoginRequest(challenge: String!): OAuthRedirect
+  "Reject a pending OAuth login challenge; returns the URL the browser must follow"
+  rejectLoginRequest(challenge: String!): OAuthRedirect
+  "Accept a pending OAuth consent challenge, binding the grant to the chosen organization (must be one the user can switch to); returns the URL the browser must follow"
+  acceptConsentRequest(challenge: String!, organizationId: Long!): OAuthRedirect
+  "Reject (deny) a pending OAuth consent challenge; returns the URL the browser must follow"
+  rejectConsentRequest(challenge: String!): OAuthRedirect
+}
+
+type OAuthQueries {
+  "Details of a pending OAuth consent challenge (client name, requested scopes); fails if the challenge belongs to another user"
+  consentRequest(challenge: String!): OAuthConsentRequestGql
+}
+
+type OAuthRedirect {
+  redirectTo: String!
+}
+
+type OrgApiKey {
+  orgApiKeyId: Long!
+  name: String!
+  keyPrefix: String!
+  permissions: Permissions!
+  expiresAt: String
+  createdByEmail: String!
+  createdAt: String!
+}
+
+type OrgDatabase {
+  orgDatabaseId: Long!
+  region: String!
+  status: String!
+  errorMessage: String
+  integrationId: Long
+  createdAt: String!
+  updatedAt: String!
+}
+
+type OrgDatabaseCredential {
+  role: String!
+  dsn: String!
+  pooledDsn: String
+}
+
+type OrgDatabaseInfo {
+  capability: Boolean!
+  database: OrgDatabase
+}
+
+type OrgDatabaseMutations {
+  "Activate the organization database: creates the Neon project in the background — poll orgDatabase until status is Ready or Error. Re-runnable from Error. Requires canManageOrgDatabase."
+  provisionOrgDatabase: OrgDatabase
+  "DESTRUCTIVE: delete the organization database — the Neon project (all data), stored credentials and the integration. Requires canManageOrgDatabase."
+  deprovisionOrgDatabase: Boolean
+  "Mint a short-lived, single-use ticket the SPA hands to the embedded pgweb database browser as its connect resource. role is \"ro\" or \"rw\"; \"rw\" requires canManageOrgDatabase, \"ro\" needs canQueryOrgDatabase (the default and floor is read-only). The ticket carries NO credentials — pgweb redeems it server-side. Requires a Ready database."
+  orgDatabaseConnectTicket(role: String!): String
+}
+
+type OrgDatabaseQueries {
+  "The organization's database (if provisioned) plus feature availability (capability=false hides the whole surface). Requires canQueryOrgDatabase or canManageOrgDatabase."
+  orgDatabase: OrgDatabaseInfo
+  "The connection credentials the caller is entitled to, for external clients (DBeaver, Metabase, Airbyte, ...): canQueryOrgDatabase sees read-only, canManageOrgDatabase adds read-write, canViewOrgDatabaseCredentials adds admin (full control). Requires a Ready database. Fetched on demand; treat as secrets."
+  orgDatabaseCredentials: [OrgDatabaseCredential!]
+  "Live introspection of the organization database's public schema (tables, columns, primary keys) for the FetchSQL/MutateSQL editors. Requires canQueryOrgDatabase and a Ready database."
+  orgDatabaseSchema(integrationId: Long!): OrgDbSchema
+}
+
+type OrgDbColumn {
+  name: String!
+  dataType: String!
+  nullable: Boolean!
+}
+
+type OrgDbSchema {
+  tables: [OrgDbTable!]!
+  schemas: [String!]!
+}
+
+type OrgDbTable {
+  name: String!
+  columns: [OrgDbColumn!]!
+  primaryKey: [String!]!
+  uniqueKeys: [[String!]!]!
+  schemaName: String
+}
+
+type OrgSecret {
+  orgSecretId: Long!
+  name: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Organization {
+  organizationId: Long!
+  name: String!
+  timezone: String!
+}
+
+type OrganizationInvitation {
+  invitationId: Long!
+  email: String!
+  organization: Organization!
+  role: Role!
+  invitedByName: String!
+  status: String!
+  createdAt: String!
+  expiresAt: String!
+}
+
+type OrganizationMutations {
+  "Switch to a different organization the user has access to"
+  switchOrganization(organizationId: Long!): AuthTokens
+  "Create a new organization and grant the current user Owner access to it (requires the canCreateOrganizations user property)"
+  createOrganization(name: String!): Organization
+  "Transfer organization ownership to another member (Owner only). Atomically demotes the current Owner to Admin and promotes the target; the caller's token keeps its old role until the next refresh."
+  transferOwnership(targetWebUserId: Long!): Boolean
+  "Rename the current organization. Requires Owner or Admin role."
+  renameOrganization(name: String!): Boolean
+}
+
+type OrganizationQueries {
+  "List of organizations the current user can switch to"
+  switchableOrganizations: [Organization!]
+}
+
+type OrganizeMutations {
+  "Create a folder for one list view. Requires the scope's manage permission."
+  createFolder(scope: String!, name: String!): Folder
+  "Rename a folder. Requires the scope's manage permission."
+  renameFolder(folderId: Long!, name: String!): Folder
+  "Delete a folder; its items become unfiled. Requires the scope's manage permission."
+  deleteFolder(folderId: Long!): Boolean
+  "Create a colored tag for one list view. Requires the scope's manage permission."
+  createTag(scope: String!, name: String!, color: String!): OrganizeTag
+  "Rename or recolor a tag. Requires the scope's manage permission."
+  updateTag(tagId: Long!, name: String!, color: String!): OrganizeTag
+  "Delete a tag and all its assignments. Requires the scope's manage permission."
+  deleteTag(tagId: Long!): Boolean
+  "Move one item into a folder of the same scope, or out of any folder (null). Requires the scope's manage permission."
+  setItemFolder(scope: String!, entityId: Long!, folderId: Long): Boolean
+  "Assign a tag to one item of the tag's scope. Idempotent. Requires the scope's manage permission."
+  assignTag(tagId: Long!, entityId: Long!): Boolean
+  "Remove a tag from one item. Requires the scope's manage permission."
+  unassignTag(tagId: Long!, entityId: Long!): Boolean
+}
+
+type OrganizeQueries {
+  "Folders, tags and their assignments for one list view (scope: process, integration, agent or tool). The Availability view reuses the process scope. Open to any org member."
+  organizeState(scope: String!): OrganizeState
+}
+
+type OrganizeState {
+  folders: [Folder!]!
+  tags: [OrganizeTag!]!
+  folderAssignments: [FolderAssignment!]!
+  tagAssignments: [TagAssignment!]!
+}
+
+type OrganizeTag {
+  tagId: Long!
+  organizationId: Long!
+  scope: String!
+  name: String!
+  color: String!
+}
+
+type Permissions {
+  canManageTeams: Boolean
+  canManageUsers: Boolean
+  canManageIntegrations: Boolean
+  canManageReleases: Boolean
+  canListSecrets: Boolean
+  canManageSecrets: Boolean
+  canManageAgents: Boolean
+  canRunAgents: Boolean
+  canManageTaskViews: Boolean
+  canManageForms: Boolean
+  canQueryOrgDatabase: Boolean
+  canManageOrgDatabase: Boolean
+  canViewOrgDatabaseCredentials: Boolean
+  canChangeAvailabilityForOthers: Boolean
+  canBuildWorkflows: Boolean
+  canManageSchedules: Boolean
+  canManageTasks: Boolean
+  canViewRunHistory: Boolean
+  canOverrideTaskCompletion: Boolean
+}
+
+type ProcessAcceptance {
+  processId: Long!
+  accepting: Boolean!
+}
+
+type ProcessAvailabilitySummary {
+  processId: Long!
+  accepting: Boolean!
+  pendingTotal: Long!
+  pendingMine: Long!
+  covering: Long!
+  lastEvent: AvailabilityEvent
+}
+
+type ProcessData {
+  process: WorkflowProcess!
+  workflows: [Workflow!]!
+  webhooks: [Webhook!]!
+  scheduledTriggers: [ScheduledTrigger!]!
+}
+
+type ProcessMutations {
+  "Create a new process with a default workflow"
+  createProcess(name: String!, description: String!): CreateProcessResultGql
+  "Create a new workflow in a process, optionally duplicating an existing workflow"
+  createWorkflow(processId: Long!, name: String!, description: String, duplicateWorkflowId: Long): WorkflowDataGql
+  "Save changes to a workflow's nodes and edges"
+  saveWorkflow(workflowData: WorkflowDataGqlInput!): WorkflowDataGql
+  "Archive a process and all its workflows"
+  archiveProcess(processId: Long!): Boolean
+  "Archive a specific workflow"
+  archiveWorkflow(workflowId: Long!): Boolean
+  "Execute a single node in memory for testing without persisting results"
+  runNodeInMemory(workflowData: WorkflowDataGqlInput!, nodeName: String!, previousRunNodes: [KVStringRunNodeGqlInput!], iterationLimit: Int, currentNodeOnly: Boolean, loopRunMode: String, loopSelectorName: String, loopSelectorIndex: Int, loopSelectorKey: String): RunWorkflowDataGql
+  "Validate JavaScript packages for availability and version"
+  validateJsPackages(packages: [JsPackageInput!]!): [JsPackageValidationResult!]
+  "Update the JavaScript packages on a process (shared across all its workflow versions). Allowed even when releases are immutable."
+  updateProcessJsPackages(processId: Long!, packages: [JsPackageInput!]!): ProcessData
+  "Update a process's operational settings (timeout, loop concurrency, failure notification), shared by all its workflow versions. Allowed even when releases are immutable."
+  updateProcessSettings(processId: Long!, settings: ProcessSettingsInput!): ProcessData
+  "Declare an endpoint's request/response contract, or clear it by passing null. Each half is an optional JSON Schema (the same subset Agent tools use). The request half is ENFORCED: a call whose body does not match is refused with 400 before the workflow runs. The response half is observed and counted, never enforced, so a schema edit cannot break live traffic. Endpoints only; unversioned, so re-releasing the workflow never changes it."
+  updateEndpointContract(processId: Long!, contract: String): ProcessData
+  "Set the paused state of a process"
+  setProcessPaused(processId: Long!, paused: Boolean!): ProcessData
+  "Generate (or regenerate) an API key for a webhook; returns the plaintext key once"
+  generateWebhookApiKey(webhookId: Long!): String
+  "Manually run a process now through one of its trigger nodes. Authenticated by the caller's session and bypasses the paused state (pause only gates automated webhook/schedule triggers); records run history with a Manual source."
+  runProcess(processId: Long!, triggerNodeName: String!, payload: String): Boolean
+  "Cancel a run: a queued run is dropped before it executes; a running run stops at the next node boundary."
+  cancelRun(runWorkflowId: Long!): Boolean
+  "Cancel an in-memory (editor test) run by its run UUID; it stops at the next node boundary. These runs have no run history row, so they cannot be cancelled through cancelRun."
+  cancelInMemoryRun(runId: String!): Boolean
+  "Mint a short-lived signed download URL for a file produced by a workflow node. Takes the `id` from the file reference in a node's output. Org-scoped: holding a reference is not authority to read the file, so the URL is minted per request for an authenticated member of the owning organization and is never stored in run state, the run cache, or an AI context."
+  workflowFileDownloadUrl(publicId: String!): String
+  "Sign a direct browser upload of a file for use in workflows, and record it pending. The browser POSTs the bytes straight to the bucket with the returned fields (the `file` part last) and then calls `commitWorkflowFileUpload` with the returned public id. Requires canBuildWorkflows; the file counts against the organization's storage quota and is reaped on the same 30-day clock as files produced by runs."
+  requestWorkflowFileUploadUrl(fileName: String!, contentType: String!, declaredSize: Long!): WorkflowFileUploadTicket
+  "Verify an uploaded file landed and mark it committed, returning the file reference to use in expressions. The size declared when the upload was requested is a client claim; this checks the real object size."
+  commitWorkflowFileUpload(publicId: String!): String
+  "Suggest a CSV dialect (delimiter, charset) by sampling the start of an uploaded file. A suggestion only — it pre-fills the editor's dialect form, and what is saved on the node is what runs. Returns null when nothing can be inferred confidently. Org-scoped like every other file read."
+  detectCsvDialect(publicId: String!): String
+}
+
+type ProcessQueries {
+  "List all processes in the current organization"
+  listProcesses: [ProcessData!]
+  "Get a specific process by ID"
+  getProcess(processId: Long, publicId: String): ProcessData
+  "Get a specific workflow by ID with all its nodes and edges"
+  getWorkflow(workflowId: Long, publicId: String): WorkflowDataGql
+  "List the production run history of a process, newest first"
+  listProcessRuns(processId: Long!, phase: String, from: String, to: String, limit: Int, offset: Int): [RunSummary!]
+  "Get the full node-by-node detail of a single run"
+  getProcessRun(runWorkflowId: Long!): RunWorkflowDataGql
+  "Aggregated stats for a process (task counts + recent run metrics) backing the process card tiles"
+  getProcessStats(processId: Long!): ProcessStats
+  "Run queue tiles: live queued/running + historical completed/failed counts and the configured queue size"
+  getProcessRunCounts(processId: Long!): RunQueueStats
+  "Bounded workflow metadata for a process. released=true → published versions (newest first), released=false → drafts (recently edited first)"
+  listWorkflows(processId: Long!, released: Boolean!, limit: Int!, offset: Int!): [Workflow!]
+}
+
+type ProcessSettings {
+  timeoutMs: Long!
+  loopConcurrencyLimit: Int
+  onFailureEmail: String
+  onFailureNotifyUserIds: [Long!]!
+  onFailureNotifyTeamIds: [Long!]!
+}
+
+type ProcessStats {
+  dueThisWeek: Int!
+  totalOpen: Int!
+  overdue: Int!
+  avgRunDurationMillis: Long
+  successRatePercent: Float
+  avgRunDurationMillisWeek: Long
+  successRatePercentWeek: Float
+}
+
+type ProcessSubscriptions {
+  "Subscribe to real-time node-by-node updates of a single run (forward or backward)"
+  watchRun(runId: String!): [RunWorkflowDataGql!]
+  "Subscribe to real-time run-status changes for a process (the Run History list)"
+  watchProcessRuns(processId: Long!): [RunSummary!]
+}
+
+type Queries {
+  "Authentication-related queries"
+  auth: AuthQueries!
+  "User management queries"
+  users: UserQueries!
+  "Organization-related queries"
+  organizations: OrganizationQueries!
+  "Process and workflow queries"
+  processes: ProcessQueries!
+  "Team management queries"
+  teams: TeamQueries!
+  "Task management queries"
+  tasks: TaskQueries!
+  "Saved task view queries"
+  taskViews: TaskViewQueries!
+  "Integration management queries"
+  integrations: IntegrationQueries!
+  "Organization secret queries"
+  secrets: SecretQueries!
+  "Organization API key queries"
+  apiKeys: ApiKeyQueries!
+  "Organization database (Neon) queries"
+  orgDatabase: OrgDatabaseQueries!
+  "Job schedule queries"
+  schedules: ScheduleQueries!
+  "Availability (control panel) queries"
+  availability: AvailabilityQueries!
+  "AI workflow copilot queries"
+  aiChat: AiChatQueries!
+  "Notification (bell/badge) queries"
+  notifications: NotificationQueries!
+  "OAuth (MCP connector) consent-flow queries"
+  oauth: OAuthQueries!
+  "Agent Builder queries (agents, runs, usage)"
+  agents: AgentQueries!
+  "Agent tool queries"
+  tools: ToolQueries!
+  "Endpoint queries"
+  endpoints: EndpointQueries!
+  "AI App Builder queries"
+  apps: AppQueries!
+  "Reusable form library queries"
+  forms: FormQueries!
+  "Public form share link queries"
+  formShares: FormShareQueries!
+  "Folder and tag (list view organization) queries"
+  organize: OrganizeQueries!
+}
+
+type ReassignPlan {
+  items: [ReassignPlanItem!]!
+  method: String!
+}
+
+type ReassignPlanItem {
+  task: WorkflowTask!
+  recipient: Long
+  reason: String!
+}
+
+type RefreshToken {
+  token: String!
+  expiresIn: Long!
+  tokenType: String!
+}
+
+type RemoveAccessPlan {
+  reassignable: Int!
+  blocked: Int!
+  teamCount: Int!
+  scheduleCount: Int!
+}
+
+type Role {
+  roleId: Long!
+  name: String!
+  description: String!
+  permissions: Permissions!
+  systemKind: String!
+  grantsAll: Boolean!
+}
+
+type RootResolverQueriesMutationsSubscriptions {
+  queryResolver: Queries
+  mutationResolver: Mutations
+  subscriptionResolver: Subscriptions
+}
+
+type RunNodeGql {
+  runNodeId: Long!
+  runWorkflowId: Long!
+  data: String!
+  inputs: [KVStringString!]!
+  output: String!
+  startedAt: String
+  finishedAt: String
+  agentRunId: Long
+  progress: String
+  usage: String
+}
+
+type RunQueueStats {
+  queued: Long!
+  running: Long!
+  completed: Long!
+  failed: Long!
+  queueSize: Int!
+}
+
+type RunSummary {
+  runWorkflowId: Long!
+  workflowId: Long!
+  trigger: String!
+  phase: String!
+  source: String
+  version: Int!
+  minorVersion: Int!
+  nodeCount: Int!
+  failedAtNode: String
+  startedAt: String!
+  durationMillis: Long
+}
+
+type RunWorkflow {
+  runWorkflowId: Long!
+  workflowId: Long!
+  trigger: String!
+  direction: RunDirection!
+  customPayload: String
+  webhookEventId: Long
+}
+
+type RunWorkflowDataGql {
+  runWorkflow: RunWorkflow!
+  runNodes: [KVStringRunNodeGql!]!
+  runId: String!
+  phase: String!
+}
+
+type ScheduleMutations {
+  "Create a job schedule"
+  createSchedule(schedule: JobScheduleInput!): JobSchedule
+  "Update an existing job schedule"
+  updateSchedule(jobScheduleId: Long!, schedule: JobScheduleInput!): JobSchedule
+  "Delete a job schedule"
+  deleteSchedule(jobScheduleId: Long!): Boolean
+}
+
+type ScheduleQueries {
+  "List job schedules for a user, a team, or the whole org over an ISO date range"
+  listSchedules(webUserId: Long, teamId: Long, from: String!, to: String!): [JobSchedule!]
+  "The organization's default timezone plus all available IANA timezones"
+  timezoneConfig: TimezoneConfig
+}
+
+type ScheduledTrigger {
+  cron: String!
+  timezone: String
+}
+
+type SecretMutations {
+  "Create an organization secret (name + value). The value is stored in the secret vault and is never returned again — it can only be overwritten or deleted. Requires canManageSecrets."
+  createSecret(name: String!, value: String!): OrgSecret
+  "Update an organization secret: rename it and/or overwrite its value (omit a field to leave it unchanged). Requires canManageSecrets."
+  updateSecret(orgSecretId: Long!, name: String, value: String): OrgSecret
+  "Delete an organization secret and its stored value. Requires canManageSecrets."
+  deleteSecret(orgSecretId: Long!): Boolean
+}
+
+type SecretQueries {
+  "List the organization's secrets — names and timestamps only; values are never returned. Requires canListSecrets or canManageSecrets."
+  listSecrets: [OrgSecret!]
+}
+
+type SheetRef {
+  sheetId: Long!
+  title: String!
+}
+
+type SlackChannelRef {
+  id: String!
+  name: String!
+  isPrivate: Boolean!
+}
+
+type SlackUserRef {
+  id: String!
+  name: String!
+  realName: String
+}
+
+type SpreadsheetRef {
+  id: String!
+  name: String!
+}
+
+type Subscriptions {
+  "Process and workflow subscriptions"
+  processes: ProcessSubscriptions!
+  "AI workflow copilot subscriptions"
+  aiChat: AiChatSubscriptions!
+  "Notification (bell/badge) subscriptions"
+  notifications: NotificationSubscriptions!
+  "Agent Builder subscriptions"
+  agents: AgentSubscriptions!
+  "Task View subscriptions"
+  tasks: TaskSubscriptions!
+  "AI App Builder subscriptions"
+  apps: AppSubscriptions!
+}
+
+type TagAssignment {
+  tagId: Long!
+  entityId: Long!
+}
+
+"A live task change: the created/updated/deleted task plus whether it matches the subscription's filters"
+type TaskEventGql {
+  kind: String!
+  "Whether the task matches the subscription's filters. Always true for Created (non-matching creates are not sent); false for Deleted. For Updated it tells the client whether to upsert (true) or drop (false) the task."
+  matches: Boolean!
+  task: WorkflowTask!
+}
+
+type TaskForm {
+  formId: Long!
+  name: String!
+  schemaSnapshot: String!
+  version: Int!
+  required: Boolean!
+  autoComplete: Boolean!
+  submission: FormSubmission
+}
+
+type TaskMutations {
+  "Create a new task"
+  createTask(task: WorkflowTaskInput!): WorkflowTask
+  "Create a new task with user or team-based assignment. Provide userId for direct assignment or teamId for random team member assignment."
+  createTaskWithAssignment(name: String!, dueDate: LocalDate!, priority: String!, userId: Long, teamId: Long, relatedWorkflow: Long, description: String, metadata: String, embeddedPages: [EmbeddedPageInput!]): WorkflowTask
+  "Mark task as completed or incomplete"
+  updateTaskStatus(taskId: Long!, completed: Boolean!): WorkflowTask
+  "Reassign task to another user"
+  updateTaskAssignee(taskId: Long!, assignedTo: Long!): WorkflowTask
+  "Update task due date"
+  updateTaskDueDate(taskId: Long!, dueDate: LocalDate!): WorkflowTask
+  "Update task priority"
+  updateTaskPriority(taskId: Long!, priority: String!): WorkflowTask
+  "Update task notes"
+  updateTaskNotes(taskId: Long!, notes: String): WorkflowTask
+  "Replace the task's metadata JSON. Any valid JSON value is accepted; omit or send blank to clear (max 64 KB)."
+  updateTaskMetadata(taskId: Long!, metadata: String): WorkflowTask
+  "Replace a task's embedded pages (the list overwrites the stored one; empty clears)"
+  updateTaskEmbeddedPages(taskId: Long!, pages: [EmbeddedPageInput!]!): WorkflowTask
+  "Update task team"
+  updateTaskTeam(taskId: Long!, teamId: Long): WorkflowTask
+  "Submit the member's answers to the task's form (SurveyJS result JSON). Fails if the task has no form or was already submitted; auto-completes the task when the form is configured to."
+  submitTaskForm(taskId: Long!, formData: String!): WorkflowTask
+  "Request a signed direct-upload ticket for a file attachment on the task's form. Assignee-only; enforces the per-file size cap, MIME allowlist and org storage quota. The browser POSTs the file to the returned url with the given fields, then stores objectKey as the SurveyJS file value."
+  requestFormUploadUrl(taskId: Long!, fieldName: String!, fileName: String!, contentType: String!, declaredSize: Long!): FormUploadTicket
+  "Resolve a short-lived signed download URL (attachment disposition) for a previously-uploaded form attachment. Restricted to members who can view the task."
+  resolveFormDownloadUrl(objectKey: String!): String
+  "Delete a task"
+  deleteTask(taskId: Long!): Boolean
+  "Apply the same changes to many tasks at once (fields left null are unchanged)"
+  batchUpdateTasks(taskIds: [Long!]!, completed: Boolean, priority: String, assignedTo: Long, dueDate: LocalDate, changeTeam: Boolean!, teamId: Long): [WorkflowTask!]
+  "Append a note to many tasks at once (append-only; never overwrites existing notes)"
+  batchAppendTaskNotes(taskIds: [Long!]!, text: String!): [WorkflowTask!]
+  "Delete many tasks at once. Returns the number deleted."
+  batchDeleteTasks(taskIds: [Long!]!): Int
+}
+
+type TaskQueries {
+  "Get a specific task by ID"
+  getTask(taskId: Long, publicId: String): WorkflowTask
+  "Get several tasks by ID at once (org-scoped; unknown/foreign ids are dropped)"
+  getTasksByIds(ids: [Long!]!): [WorkflowTask!]
+  "Get several tasks by public id (UUID) at once (org-scoped; unknown/foreign ids are dropped)"
+  getTasksByPublicIds(publicIds: [String!]!): [WorkflowTask!]
+  "List tasks for the current organization"
+  listTasks(startDate: LocalDate, endDate: LocalDate, includeCompleted: Boolean, assignedTo: [Long!], priorities: [String!], relatedProcess: Long, relatedTeam: Long, relatedTeams: [Long!], completedFrom: LocalDate, completedTo: LocalDate, searchQuery: String, "Only manual tasks (no related workflow/process)" manualOnly: Boolean, "Optional lower bound on the task's due time. Tasks with no due time (date-only) are never excluded by it." dueFromAt: ZonedDateTime, "Optional upper bound on the task's due time. Tasks with no due time (date-only) are never excluded by it." dueToAt: ZonedDateTime, "Optional lower bound on the task's completion time. Tasks with no completion time are never excluded by it." completedFromAt: ZonedDateTime, "Optional upper bound on the task's completion time. Tasks with no completion time are never excluded by it." completedToAt: ZonedDateTime): [WorkflowTask!]
+  "List overdue tasks for the current organization"
+  listOverdueTasks: [WorkflowTask!]
+  "Task-throughput series bucketed by time and split by process"
+  taskTimeSeries("Bucket size: hour, day, week, or month" granularity: String!, "completed (by completion time) or pending (by due date)" mode: String!, "Inclusive start of the range (by completion/due date)" from: LocalDate!, "Inclusive end of the range (by completion/due date)" to: LocalDate!, assignedTo: [Long!], relatedTeams: [Long!], relatedProcesses: [Long!], priorities: [String!], "IANA zone the Hour buckets are computed in (e.g. America/Mexico_City). Defaults to UTC — never the server JVM default." timezone: String): [TaskSeriesPoint!]
+  "One newest-first page of the task's audit trail (who changed which field, old -> new), with resolved actor display info"
+  taskUpdates(taskId: Long!, "Pagination cursor: return audit rows with taskUpdateId strictly below this (newest page when omitted)." before: Long, "Page size; server-clamped to 1-100 (default 50)." limit: Int): TaskUpdatesPage
+}
+
+type TaskSeriesPoint {
+  bucketStart: String!
+  processId: Long
+  processName: String!
+  count: Int!
+}
+
+type TaskSubscriptions {
+  "Subscribe to real-time task create/update/delete events for the organization, pre-filtered by the same filters as the Task View list"
+  watchTasks(startDate: LocalDate, endDate: LocalDate, includeCompleted: Boolean, assignedTo: [Long!], priorities: [String!], relatedProcess: Long, relatedTeam: Long, relatedTeams: [Long!], completedFrom: LocalDate, completedTo: LocalDate, searchQuery: String, "Only manual tasks (no related workflow/process)" manualOnly: Boolean, "Optional lower bound on the task's due time. Tasks with no due time (date-only) are never excluded by it." dueFromAt: ZonedDateTime, "Optional upper bound on the task's due time. Tasks with no due time (date-only) are never excluded by it." dueToAt: ZonedDateTime, "Optional lower bound on the task's completion time. Tasks with no completion time are never excluded by it." completedFromAt: ZonedDateTime, "Optional upper bound on the task's completion time. Tasks with no completion time are never excluded by it." completedToAt: ZonedDateTime): [TaskEventGql!]
+}
+
+type TaskUpdateEntry {
+  taskUpdateId: Long!
+  field: String!
+  oldValue: String
+  newValue: String
+  actorSource: String!
+  actorWebUserId: Long
+  runWorkflowId: Long
+  agentRunId: Long
+  orgApiKeyId: Long
+  actorName: String
+  processId: Long
+  agentId: Long
+  createdAt: String!
+}
+
+type TaskUpdatesPage {
+  updates: [TaskUpdateEntry!]!
+  hasMore: Boolean!
+}
+
+type TaskView {
+  taskViewId: Long!
+  processId: Long
+  name: String!
+  filters: TaskViewFilters!
+  columns: [TaskViewColumn!]!
+  sort: [TaskViewSort!]!
+  isDefault: Boolean!
+  pinned: Boolean!
+  createdBy: Long
+  createdAt: String!
+  updatedAt: String!
+}
+
+type TaskViewColumn {
+  key: String!
+}
+
+type TaskViewFilters {
+  processId: Long
+  assignedTo: [Long!]!
+  priorities: [String!]!
+  teamIds: [Long!]!
+  includeCompleted: Boolean!
+  dueFrom: LocalDate
+  dueTo: LocalDate
+  searchQuery: String
+  dueFromTime: String
+  dueToTime: String
+}
+
+type TaskViewMutations {
+  "Create a new org-shared saved task view. Requires canManageTaskViews."
+  createTaskView(view: TaskViewInput!): TaskView
+  "Overwrite an existing saved task view. Requires canManageTaskViews."
+  updateTaskView(taskViewId: Long!, view: TaskViewInput!): TaskView
+  "Delete a saved task view (affects everyone in the org). Requires canManageTaskViews."
+  deleteTaskView(taskViewId: Long!): Boolean
+  "Set a view as the org default for its process. Requires canManageTaskViews."
+  setDefaultTaskView(taskViewId: Long!, processId: Long!): TaskView
+  "Pin a view as a personal favorite (per-user)"
+  pinTaskView(taskViewId: Long!): Boolean
+  "Unpin a personal favorite view (per-user)"
+  unpinTaskView(taskViewId: Long!): Boolean
+}
+
+type TaskViewQueries {
+  "List the organization's saved task views (optionally for one process), with this user's pin flags"
+  listTaskViews(processId: Long): [TaskView!]
+  "Get a single saved task view by ID (org-scoped)"
+  getTaskView(taskViewId: Long!): TaskView
+  "Distinct scalar-valued root metadata keys across a process's tasks, for auto columns (capped)"
+  taskMetadataColumnKeys(processId: Long!): [String!]
+}
+
+type TaskViewSort {
+  key: String!
+  descending: Boolean!
+}
+
+type Team {
+  teamId: Long!
+  organizationId: Long!
+  name: String!
+  color: String!
+  slackId: String
+}
+
+type TeamMutations {
+  "Create a new team (requires teamManagement permission)"
+  createTeam(name: String!, slackId: String): Team
+  "Delete a team (requires teamManagement permission)"
+  deleteTeam(teamId: Long!): Boolean
+  "Add a user to a team (requires teamManagement permission)"
+  addUserToTeam(webUserId: Long!, teamId: Long!): Boolean
+  "Remove a user from a team (requires teamManagement permission)"
+  removeUserFromTeam(webUserId: Long!, teamId: Long!): Boolean
+  "Update a team's name, color and/or Slack id (requires teamManagement permission)"
+  updateTeam(teamId: Long!, name: String, color: String, slackId: String): Team
+}
+
+type TeamQueries {
+  "List of all teams in the current organization"
+  listTeams: [Team!]
+  "Get members of a specific team"
+  teamMembers(teamId: Long!): [UserData!]
+}
+
+type TestChatTurn {
+  session: AgentSession!
+  agentRunId: Long!
+}
+
+type TestSessionData {
+  session: AgentSession!
+  messages: [AgentSessionMessage!]!
+  activeRun: AgentRun
+}
+
+type TimezoneConfig {
+  organizationDefault: String!
+  available: [String!]!
+}
+
+type Tool {
+  toolId: Long!
+  publicId: String!
+  organizationId: Long!
+  processId: Long!
+  name: String!
+  description: String!
+  inputSchema: String!
+  outputSelection: ToolOutputSelection
+  access: String!
+  enabled: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type ToolData {
+  tool: Tool!
+  hasRelease: Boolean!
+  draftWorkflowId: Long
+  releasedWorkflowId: Long
+  releasedNodeNames: [String!]!
+}
+
+type ToolMutations {
+  "Create an Agent tool AND its kind='tool' process with a seeded draft workflow"
+  createTool("Function name the model calls: ^[a-z][a-z0-9_]*$, unique per org" name: String!, description: String!, "read_only | mutating" access: String!): ToolData
+  "Update the tool contract (schema, output selection, access, enabled)"
+  updateTool(toolId: Long!, name: String!, description: String!, "Input JSON Schema (supported subset; validated on save and on every dispatch)" inputSchema: String!, "ToolOutputSelection JSON; omitted = the terminal node's output" outputSelection: String, access: String!, enabled: Boolean!): ToolData
+  "Delete a tool and its process; blocked while agents still reference it"
+  deleteTool(toolId: Long!): Boolean
+}
+
+type ToolOutputSelection {
+  nodes: [String!]!
+  projection: String
+}
+
+type ToolQueries {
+  "List the organization's Agent tools with release/readiness context"
+  listTools: [ToolData!]
+  "One Agent tool with release/readiness context"
+  getTool(toolId: Long, publicId: String): ToolData
+  "Evaluate an output selection against the tool process's most recent completed run (None = no completed run yet)"
+  previewToolOutput(toolId: Long!, "ToolOutputSelection JSON to preview; omitted = the tool's saved selection" outputSelection: String): String
+}
+
+type UserAvailability {
+  webUserId: Long!
+  available: Boolean!
+  processes: [ProcessAcceptance!]!
+  lastGlobalEvent: AvailabilityEvent
+}
+
+type UserAvailabilityIntervals {
+  webUserId: Long!
+  intervals: [AvailabilityInterval!]!
+}
+
+type UserData {
+  webUserId: Long!
+  email: String!
+  firstName: String!
+  lastName: String
+  isFirstSignIn: Boolean!
+  isDisabled: Boolean!
+  slackId: String
+  organization: Organization!
+  role: Role!
+  teams: [Team!]!
+  isExternal: Boolean!
+}
+
+type UserMutations {
+  "Create a new user in the organization (requires canManageUsers permission). Returns an outcome rather than failing when the email already has an account: `accountExistsElsewhere` means the address belongs to a real person in another organization, who must be invited and must consent."
+  createUser(firstName: String!, lastName: String, email: String!, roleId: Long): CreateUserResult
+  "Update a user's role in this organization (requires canManageUsers permission). For an external member this changes their role here only, never in their home organization."
+  updateUserRole(webUserId: Long!, roleId: Long!): UserData
+  "Enable or disable a user (requires canManageUsers permission). Rejected for external members: the flag is global, so it would lock them out of their own organization — remove their access instead."
+  setUserDisabled(webUserId: Long!, isDisabled: Boolean!): UserData
+  "Update a user's profile: name, last name, email and Slack id. A user may always edit themselves; editing other users requires canManageUsers permission. Name and email are rejected for external members, whose identity belongs to their own organization."
+  updateUserProfile(webUserId: Long!, firstName: String!, lastName: String, email: String!, slackId: String): UserData
+  "Set a member's Slack id for this organization only. Unlike updateUserProfile this cannot touch global identity fields, which is what makes it usable on external members."
+  setMemberSlackId(webUserId: Long!, slackId: String): UserData
+  "Invite an existing account to join this organization as an external member (requires canManageUsers permission). Access is granted only once they accept."
+  inviteExistingUser(email: String!, roleId: Long): OrganizationInvitation
+  "Issue a fresh token and a fresh 48h window on a pending invitation (requires canManageUsers permission)"
+  resendInvitation(invitationId: Long!): OrganizationInvitation
+  "Withdraw a pending invitation (requires canManageUsers permission)"
+  revokeInvitation(invitationId: Long!): Boolean
+  "Accept an invitation from its emailed token. Requires a signed-in session belonging to the invitee."
+  acceptInvitation(token: String!): Organization
+  "Accept an invitation from the in-app notification card, where the session already proves identity"
+  acceptInvitationById(invitationId: Long!): Organization
+  "Decline an invitation addressed to the signed-in user"
+  declineInvitation(invitationId: Long!): Boolean
+  "Revoke an external member's access to this organization and clean up their org-scoped data (requires canManageUsers permission)"
+  removeExternalMember(webUserId: Long!, fallbackAssignee: Long): Boolean
+}
+
+type UserQueries {
+  "List of all members in the current organization, including external members whose home organization is elsewhere"
+  listMembers: [UserData!]
+  "List of all available roles"
+  listRoles: [Role!]
+  "Invitations this organization has sent to existing accounts (requires canManageUsers permission)"
+  listInvitations: [OrganizationInvitation!]
+  "Resolve an emailed invitation token. Deliberately available without authentication so the landing page can explain itself before asking the visitor to sign in; accepting still requires a session belonging to the invitee."
+  invitationByToken(token: String!): InvitationPreview
+  "What removing an external member's access would do, so the confirmation dialog can state it (requires canManageUsers permission)"
+  planRemoveAccess(webUserId: Long!): RemoveAccessPlan
+}
+
+type Webhook {
+  webhookId: Long!
+  processId: Long!
+  nodeName: String!
+  path: String!
+  hasApiKey: Boolean!
+  isWebhookTrigger: Boolean!
+}
+
+type WhatsappTemplateRef {
+  name: String!
+  language: String!
+  category: String!
+  bodyVariableCount: Int!
+  headerVariableCount: Int!
+  buttonVariableCount: Int!
+}
+
+type Workflow {
+  workflowId: Long!
+  publicId: String
+  processId: Long!
+  name: String!
+  description: String
+  majorVersion: Int
+  minorVersion: Int
+  createdAt: String
+  updatedAt: String
+}
+
+type WorkflowChat {
+  chatId: Long!
+  organizationId: Long!
+  subjectKind: ChatSubjectKind!
+  subjectId: Long!
+  processId: Long
+  name: String!
+  status: ChatStatus!
+  settings: ChatSettings!
+  graph: String
+  lastEventSeq: Long!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type WorkflowChatMessage {
+  messageId: Long!
+  chatId: Long!
+  seq: Long!
+  role: String!
+  content: String!
+}
+
+type WorkflowDataGql {
+  workflow: Workflow!
+  nodes: [NodeGql!]!
+  nodeConnections: [NodeConnection!]!
+}
+
+type WorkflowFileUploadTicket {
+  publicId: String!
+  url: String!
+  fields: [FormUploadField!]!
+}
+
+type WorkflowProcess {
+  processId: Long!
+  publicId: String!
+  organizationId: Long!
+  name: String!
+  description: String!
+  paused: Boolean!
+  jsPackages: [JsPackage!]!
+  kind: String!
+  settings: ProcessSettings!
+  endpointContract: String
+}
+
+type WorkflowTask {
+  taskId: Long!
+  publicId: String
+  organizationId: Long!
+  assignedTo: Long!
+  relatedWorkflow: Long
+  teamId: Long
+  priority: String!
+  dueDate: LocalDate!
+  completedDate: LocalDate
+  name: String!
+  description: String!
+  metadata: String
+  notes: String
+  dedupId: String
+  embeddedPages: [EmbeddedPage!]!
+  metadataBadges: [MetadataBadge!]!
+  form: TaskForm
+  dueAt: ZonedDateTime
+  completedAt: ZonedDateTime
+  createdAt: ZonedDateTime
+  completionLocked: Boolean
+}
+
+schema {
+  query: Queries
+  mutation: Mutations
+  subscription: Subscriptions
+}
