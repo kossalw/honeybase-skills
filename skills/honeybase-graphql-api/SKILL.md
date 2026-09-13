@@ -1,7 +1,7 @@
 ---
 name: honeybase-graphql-api
 description: Use the Honeybase GraphQL API with an organization API key (hbk_...) — tasks, processes/workflows, runs, teams, schedules, availability, agents. Honeybase is a workflow-automation platform with no public documentation; AI models are not trained on it, so ALWAYS load this skill before writing any query, mutation or integration against a Honeybase server. Includes the full GraphQL schema as a greppable reference.
-version: 2026-09-06
+version: 2026-09-13
 ---
 
 # Honeybase GraphQL API

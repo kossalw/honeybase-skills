@@ -34,6 +34,7 @@ enum NotificationKind {
   AvailabilityChanged
   Error
   Info
+  McpToolDrift
   OrganizationInvitation
   RunCompleted
   RunFailed
@@ -98,6 +99,13 @@ input KVStringStringInput {
   key: String!
   "Value"
   value: String!
+}
+
+input McpToolApprovalInput {
+  toolName: String!
+  access: String!
+  "sha256 of the definition the client rendered. A mismatch means the server changed the tool mid-review and the approval is rejected."
+  expectedPinHash: String!
 }
 
 input MetadataBadgeInput {
@@ -182,6 +190,7 @@ input TaskFormInput {
   required: Boolean!
   autoComplete: Boolean!
   submission: FormSubmissionInput
+  prefillData: String
 }
 
 input TaskViewColumnInput {
@@ -270,7 +279,7 @@ type Agent {
   description: String!
   paused: Boolean!
   releasedVersionId: Long
-  monthlyTokenBudget: Long
+  monthlyBudgetUsd: Float
   budgetNotifyUserIds: [Long!]!
   budgetNotifyEmails: String
   hasExternalApiKey: Boolean!
@@ -288,8 +297,8 @@ type AgentData {
 type AgentMutations {
   "Create an agent with an empty draft version"
   createAgent(name: String!, description: String!): AgentData
-  "Update agent identity and monthly token budget"
-  updateAgent(agentId: Long!, name: String!, description: String!, monthlyTokenBudget: Long, budgetNotifyUserIds: [Long!], budgetNotifyEmails: String): Agent
+  "Update agent identity and monthly budget (USD)"
+  updateAgent(agentId: Long!, name: String!, description: String!, "Monthly budget in USD (estimated spend, calendar month UTC); null = unlimited" monthlyBudgetUsd: Float, budgetNotifyUserIds: [Long!], budgetNotifyEmails: String): Agent
   "Update the agent's draft version (prompt, connection, model, settings)"
   updateAgentDraft(agentId: Long!, systemPrompt: String!, integrationId: Long, model: String!, "AgentSettings JSON (tool refs, brakes, structured output)" settings: String!): AgentData
   "Stamp the draft as the next release and clone a fresh draft. Also requires canManageReleases."
@@ -300,8 +309,8 @@ type AgentMutations {
   setAgentAppInvocable(agentId: Long!, appInvocable: Boolean!): Agent
   "Delete an agent, its versions, sessions and run history"
   deleteAgent(agentId: Long!): Boolean
-  "Set the org-wide monthly token budget across all agents (None = unlimited)"
-  setOrgAgentBudget(monthlyTokenBudget: Long): Boolean
+  "Set the org-wide monthly agent budget in USD across all agents (null = unlimited)"
+  setOrgAgentBudget("Org-wide monthly agent budget in USD (estimated spend); null = unlimited" monthlyBudgetUsd: Float): Boolean
   "Send a test-chat message: runs the DRAFT version (streams via watchAgentRun)"
   startTestChatTurn(agentId: Long!, content: String!): TestChatTurn
   "Approve / reject-with-message / edit-args-then-approve a pending tool call"
@@ -361,6 +370,7 @@ type AgentRun {
   finishedAt: String
   initiatedByWebUserId: Long
   appId: Long
+  costEstimated: Boolean!
 }
 
 type AgentRunChildSummary {
@@ -429,8 +439,7 @@ type AgentSessionMessage {
 type AgentSettings {
   toolRefs: [AgentToolRef!]!
   maxTurns: Int!
-  maxRunTokens: Long
-  maxAutoRunsBetweenApprovals: Int!
+  maxRunUsd: Float
   temperature: Float
   structuredOutputSchema: String
 }
@@ -445,6 +454,7 @@ type AgentToolRef {
   agentId: Long
   builtin: String
   native: NativeToolRef
+  mcp: McpToolRef
   policy: String!
 }
 
@@ -452,7 +462,8 @@ type AgentUsage {
   daily: [AgentUsageDay!]!
   perAgent: [AgentUsageAgent!]!
   orgMonthTokens: Long!
-  orgMonthlyTokenBudget: Long
+  orgMonthCost: Float!
+  orgMonthlyBudgetUsd: Float
   perApp: [AgentUsageApp!]!
 }
 
@@ -461,7 +472,7 @@ type AgentUsageAgent {
   name: String!
   monthTokens: Long!
   monthCost: Float!
-  monthlyTokenBudget: Long
+  monthlyBudgetUsd: Float
 }
 
 type AgentUsageApp {
@@ -506,6 +517,8 @@ type AiChatMutations {
   cancelChatTurn(chatId: Long!): Boolean
   "Approve or reject a pending tool call (AskPermission mode)"
   respondToToolCall(chatId: Long!, toolCallId: String!, approved: Boolean!, "Rejections only: an optional free-text reply the copilot sees verbatim (it may carry the content you actually want, e.g. a corrected form schema). Capped server-side." note: String, "Input-request cards only: an InputClaim JSON saying what the user created (e.g. {\"Integration\":{\"integrationId\":42}}). It is a POINTER, never a fact and never tool arguments — the server re-reads what it points at under your own permissions and builds the copilot's result from what it finds, so a forged or cross-organization id yields an 'unavailable' result rather than anything the model believes." inputClaim: String): Boolean
+  "Revert an approved copilot write while it is still safe to: the newest revertible write of an idle chat, untouched since, with at most one message after it. Returns whether the revert happened; either way the chat gains a ToolCallUndone event saying what did or did not change. This is never a tool the copilot can call."
+  undoToolCall(chatId: Long!, "The tool call to revert, named by the id on its ToolCallResult event. It is a POINTER and nothing more: the operation is rebuilt from the inverse the server persisted when the write happened, never from anything the client sends, and it runs through the same services under the same identity the write used. Only the newest still-revertible write of the chat qualifies, and only while it is untouched and the chat is idle." toolCallId: String!): Boolean
   "Update a chat's settings (mode, tool-call limit, model)"
   updateChatSettings(chatId: Long!, settings: String!): WorkflowChat
   "Rename a chat"
@@ -526,6 +539,22 @@ type AiChatSubscriptions {
   watchChat(chatId: Long!, "Replay persisted events with seq > fromSeq from the DB before going live (reload-resilience)" fromSeq: Long): [ChatEventGql!]
 }
 
+type AiCreditsBalance {
+  granted: Long!
+  remaining: Long!
+  model: String!
+  centsPerCredit: Int!
+  integrationPublicId: String
+  state: String!
+}
+
+type AiCreditsQueries {
+  "The organization's Honeybase AI credits: granted, remaining (approximate - the gateway writes spend in batches), the model in use and the locked connection's public id. Null when the feature is off or the organization never received a grant."
+  balance: AiCreditsBalance
+  "Whether Honeybase AI credits are enabled on this deployment (the feature flag, not this organization's grant)."
+  enabled: Boolean
+}
+
 type AiModelInfo {
   id: String!
   provider: String!
@@ -533,6 +562,8 @@ type AiModelInfo {
   maxInputTokens: Int
   maxOutputTokens: Int
   supportsFunctionCalling: Boolean!
+  inputCostPerToken: Float
+  outputCostPerToken: Float
 }
 
 type ApiKeyMutations {
@@ -818,6 +849,7 @@ type Form {
   description: String!
   schema: String!
   version: Int!
+  folderId: Long
   createdAt: String!
   updatedAt: String!
 }
@@ -838,6 +870,24 @@ type FormQueries {
   getForm(formId: Long, publicId: String): Form
 }
 
+type FormResponse {
+  formResponseId: Long!
+  formShareId: Long!
+  schemaVersion: Int!
+  data: String!
+  submittedAt: String!
+}
+
+type FormResponsePage {
+  responses: [FormResponse!]!
+  total: Int!
+}
+
+type FormResponseQueries {
+  "One page of a form's public responses across ALL of its share links, newest first, plus the total so a table can page through them. `data` is the SurveyJS answer JSON exactly as submitted — untrusted end-user input, to be rendered as text and never as HTML. `schemaVersion` names the frozen definition the answers were given against, which is what makes a response from an older version of the form still readable. Requires canManageForms."
+  listFormResponses(formId: Long!, "Max responses, 1-100 (default 20)" limit: Int, "Row offset for pagination (default 0)" offset: Int): FormResponsePage
+}
+
 type FormShare {
   formShareId: Long!
   formId: Long!
@@ -855,12 +905,16 @@ type FormShare {
 type FormShareMutations {
   "Share a form as a public link that anyone can fill without an account. Freezes the form's current schema and version onto the link (editing the form later does not change what the link serves). Optional password (a speed bump, not a security boundary — it travels next to the link), expiry and maximum number of responses; `maxResponses: 1` makes it single-use. Requires canManageForms."
   createFormShare(formId: Long!, password: String, expiresAt: ZonedDateTime, maxResponses: Int): FormShare
+  "Mint a link that arrives already filled in, for one named recipient. `answers` is a JSON object of seeded values whose keys must be VISIBLE question names of the form (a mistyped key fails this call and is named in the error). `correlation` is a JSON object of values the server keeps and never sends to the browser — a task id, a customer id — which the Form Submission trigger later reports under `prefill`; its keys must not name any question of the form. Defaults to single-use: omitting `maxResponses` means 1, not unlimited. Requires canManageForms."
+  createPrefilledFormShare(formId: Long!, answers: String!, correlation: String!, password: String, expiresAt: ZonedDateTime, maxResponses: Int): FormShare
   "Kill a share link. Final for that token — it is never reactivated, and the responses it collected stay attached to it. Use rotateFormShare to re-share. Returns false if it was already revoked. Requires canManageForms."
   revokeFormShare(formShareId: Long!): Boolean
   "Revoke a link and issue a replacement with a NEW token, keeping the same expiry, response cap and frozen schema version. The password carries over unless `newPassword` replaces it. Requires canManageForms."
   rotateFormShare(formShareId: Long!, newPassword: String): FormShare
   "Move a live link onto the form's current definition, appending a new frozen version. Responses already collected keep the version they answered. Fails if the link already serves the latest version, or has been revoked. Requires canManageForms."
   pushFormShareSchema(formShareId: Long!): FormShare
+  "Erase the personal data one share link collected: permanently deletes its responses AND the files those responses referenced. Irreversible, and not the same as revoking — revoking kills the URL and keeps the answers, this keeps the (dead) URL as history and destroys the answers. Returns the number of responses deleted. Requires canManageForms."
+  deleteFormShareData(formShareId: Long!): Int
 }
 
 type FormShareQueries {
@@ -1004,6 +1058,84 @@ type KVStringString {
   value: String!
 }
 
+type McpConnectionDetail {
+  integrationId: Long!
+  publicId: String!
+  name: String!
+  enabled: Boolean!
+  serverUrl: String!
+  authMode: String!
+  oauthConnectedAt: String
+  oauthIssuer: String
+  sync: McpConnectionSyncState!
+  tools: [McpConnectionTool!]!
+}
+
+type McpConnectionMutations {
+  "Contact the server now and reconcile the tool ledger (requires canManageIntegrations)"
+  syncMcpConnection(integrationId: Long!): McpConnectionDetail
+  "Approve tools at an access tier, pinning the reviewed definitions"
+  approveMcpTools(integrationId: Long!, approvals: [McpToolApprovalInput!]!): McpConnectionDetail
+  "Revoke previously approved tools"
+  revokeMcpTools(integrationId: Long!, toolNames: [String!]!): McpConnectionDetail
+  "Handshake with an MCP server without saving: discovery IS the connection test"
+  testMcpConnection(config: String!, secret: String, integrationId: Long): String
+}
+
+type McpConnectionQueries {
+  "One MCP connection: its advertised tools with approval state, pins and last-sync status"
+  mcpConnection(integrationId: Long!): McpConnectionDetail
+  "All MCP connections of the org with their tool ledgers (names, tiers, statuses — no schemas or pins), for the agent builder's attach surface"
+  listMcpConnections: [McpConnectionSummary!]
+}
+
+type McpConnectionSummary {
+  integrationId: Long!
+  publicId: String!
+  name: String!
+  enabled: Boolean!
+  syncStatus: String!
+  tools: [McpToolListing!]!
+}
+
+type McpConnectionSyncState {
+  status: String!
+  lastError: String
+  lastAttemptAt: String
+  lastSuccessAt: String
+  serverName: String
+  serverVersion: String
+  protocolVersion: String
+}
+
+type McpConnectionTool {
+  toolName: String!
+  title: String
+  description: String!
+  inputSchema: String!
+  status: String!
+  access: String
+  liveHash: String!
+  pinHash: String
+  pinnedDescription: String
+  pinnedInputSchema: String
+  approvedByName: String
+  approvedAt: String
+  lastSeenAt: String
+}
+
+type McpToolListing {
+  toolName: String!
+  description: String!
+  access: String
+  status: String!
+}
+
+type McpToolRef {
+  integrationId: Long!
+  toolName: String!
+}
+
 type MetadataBadge {
   key: String!
   color: String!
@@ -1052,6 +1184,7 @@ type Mutations {
   endpoints: EndpointMutations!
   "AI App Builder mutations"
   apps: AppMutations!
+  mcpConnections: McpConnectionMutations!
   "Reusable form library mutations"
   forms: FormMutations!
   "Public form share link mutations"
@@ -1387,7 +1520,7 @@ type ProcessMutations {
   "Cancel an in-memory (editor test) run by its run UUID; it stops at the next node boundary. These runs have no run history row, so they cannot be cancelled through cancelRun."
   cancelInMemoryRun(runId: String!): Boolean
   "Mint a short-lived signed download URL for a file produced by a workflow node. Takes the `id` from the file reference in a node's output. Org-scoped: holding a reference is not authority to read the file, so the URL is minted per request for an authenticated member of the owning organization and is never stored in run state, the run cache, or an AI context."
-  workflowFileDownloadUrl(publicId: String!): String
+  workflowFileDownloadUrl(publicId: String!, source: String): String
   "Sign a direct browser upload of a file for use in workflows, and record it pending. The browser POSTs the bytes straight to the bucket with the returned fields (the `file` part last) and then calls `commitWorkflowFileUpload` with the returned public id. Requires canBuildWorkflows; the file counts against the organization's storage quota and is reaped on the same 30-day clock as files produced by runs."
   requestWorkflowFileUploadUrl(fileName: String!, contentType: String!, declaredSize: Long!): WorkflowFileUploadTicket
   "Verify an uploaded file landed and mark it committed, returning the file reference to use in expressions. The size declared when the upload was requested is a client claim; this checks the real object size."
@@ -1463,6 +1596,8 @@ type Queries {
   apiKeys: ApiKeyQueries!
   "Organization database (Neon) queries"
   orgDatabase: OrgDatabaseQueries!
+  "Honeybase AI credits queries"
+  aiCredits: AiCreditsQueries!
   "Job schedule queries"
   schedules: ScheduleQueries!
   "Availability (control panel) queries"
@@ -1481,10 +1616,13 @@ type Queries {
   endpoints: EndpointQueries!
   "AI App Builder queries"
   apps: AppQueries!
+  mcpConnections: McpConnectionQueries!
   "Reusable form library queries"
   forms: FormQueries!
   "Public form share link queries"
   formShares: FormShareQueries!
+  "Public form response queries"
+  formResponses: FormResponseQueries!
   "Folder and tag (list view organization) queries"
   organize: OrganizeQueries!
 }
@@ -1672,6 +1810,7 @@ type TaskForm {
   required: Boolean!
   autoComplete: Boolean!
   submission: FormSubmission
+  prefillData: String
 }
 
 type TaskMutations {
@@ -1699,7 +1838,7 @@ type TaskMutations {
   submitTaskForm(taskId: Long!, formData: String!): WorkflowTask
   "Request a signed direct-upload ticket for a file attachment on the task's form. Assignee-only; enforces the per-file size cap, MIME allowlist and org storage quota. The browser POSTs the file to the returned url with the given fields, then stores objectKey as the SurveyJS file value."
   requestFormUploadUrl(taskId: Long!, fieldName: String!, fileName: String!, contentType: String!, declaredSize: Long!): FormUploadTicket
-  "Resolve a short-lived signed download URL (attachment disposition) for a previously-uploaded form attachment. Restricted to members who can view the task."
+  "Resolve a short-lived signed download URL (attachment disposition) for a previously-uploaded form attachment. Always org-scoped; beyond that, a task attachment is restricted to members who can view the task, and an attachment uploaded through a public share link requires canManageForms (reading it is part of reading the response)."
   resolveFormDownloadUrl(objectKey: String!): String
   "Delete a task"
   deleteTask(taskId: Long!): Boolean
@@ -1993,6 +2132,7 @@ type WhatsappTemplateRef {
   bodyVariableCount: Int!
   headerVariableCount: Int!
   buttonVariableCount: Int!
+  headerFormat: String
 }
 
 type Workflow {
