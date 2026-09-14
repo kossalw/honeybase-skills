@@ -19,7 +19,7 @@ Two things make writing one different from writing plain SurveyJS, and both are 
 Forms library (/forms)        one row per reusable form, has a version
   │  attach
   ▼
-Create Task node   formAttachment: {formId, required, autoComplete}
+Create Task node   formAttachment: {formId, required, autoComplete, presentation}
 Update Task node   formAction: "Set" | "Remove" | "NoChange"  +  formAttachment
   │  at run time the runner SNAPSHOTS the schema + version onto the task
   ▼
@@ -32,7 +32,24 @@ Task Update trigger / JS nodes read task.form.data.<question name>
 - **Snapshot-on-attach is the important part.** The runner freezes the schema and its version onto the task when the task is created/updated. Editing the library form afterwards bumps the library version and changes nothing on tasks already in flight. To change what an in-flight task shows, you must re-attach.
 - `formAttachment.required` (default `true`) — the task cannot be completed until the form is submitted.
 - `formAttachment.autoComplete` (default `true`) — submitting the form completes the task.
+- `formAttachment.presentation` (default `"Full"`) — how the assignee sees the form. See [Presentations](#presentations) below.
 - `formAttachment.formId` is **the form's public id (UUID) over MCP** and **the numeric id in the workflow editor / Barry**. The MCP boundary translates it in both directions; passing a number over MCP is rejected with `'<NodeName>'.data.formAttachment.formId must be the form's public id (UUID); see list_forms.`
+
+### Presentations
+
+`formAttachment.presentation` is one of four strings:
+
+| Value | What the assignee sees | Needs `formId`? |
+|---|---|---|
+| `Full` (default) | The form in the task's full view (its own tab); the side panel shows an indicator with an "Open full view" button | yes |
+| `Inline` | The form rendered compactly right under the task's badges, in the side panel too. **At most 3 questions** — the save is rejected naming the form when it has more (panels are free, hidden questions count) | yes |
+| `Approval` | An **Approve / Reject** button pair under the badges. A built-in template: no library form | no |
+| `ApprovalWithNotes` | Approve / Reject plus an optional note | no |
+
+- The two approval templates are real frozen forms: `task.form.data.decision` is `"approved"` or `"rejected"` (and `task.form.data.notes` the note, or `null`). Branch on it from a **Task Update** trigger — a Form Submission trigger never fires for a template (there is no library form to name).
+- Templates force `required` and `autoComplete` to `true` and ignore `formDataCode`: the decision IS the task's resolution.
+- `Full`/`Inline` with no `formId` is rejected at save time (`Node 'X' shows a form as Full but no form is picked — pick a library form, or choose the Approval presentation, which needs none`). A `formId` on a template is inert.
+- `task.form.formId` is `null` for a template; `task.form.presentation` carries the value (always present, `"Full"` for forms attached before the field existed).
 
 ### `formAttachment.required` is NOT SurveyJS `isRequired`
 
@@ -82,7 +99,8 @@ So **name questions like database fields, never `question1`.** Rules:
     "invoice_total": null,
     "cost_centre": null,
     "notes": null
-  }
+  },
+  "presentation": "Full"
 }
 ```
 
@@ -90,6 +108,7 @@ So **name questions like database fields, never `question1`.** Rules:
 - Branch on **`submitted`**, not on whether `data` is empty.
 - After submission the answers overlay the null placeholders; unanswered optional questions stay `null`.
 - `task.form.formId` here is the **numeric** id (unlike `formAttachment.formId` over MCP).
+- `task.form.presentation` is always a string; `task.form.formId` is `null` for the `Approval` / `ApprovalWithNotes` templates.
 - `data` is scrubbed and capped at 64 KB. Do not design a form whose answers approach that.
 
 ## The allowlist: 15 question types
