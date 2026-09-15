@@ -1,12 +1,12 @@
 ---
 name: honeybase-forms
 description: Author SurveyJS form definitions for Honeybase tasks — the 15 allowed question types and why the rest are refused, the nine blocked keys, question naming (a question `name` becomes `task.form.data.<name>` downstream), the attach/snapshot lifecycle, conditional-logic idioms, and worked examples that are CI-verified to validate and render. Honeybase forms are a deliberately subsetted SurveyJS and nothing about that subset is in your training data — ALWAYS load this before writing or editing a Honeybase form schema (`validate_form_schema`, `create_form`, `update_form`, or a Create/Update Task node's `formAttachment`).
-version: 2026-09-05
+version: 2026-09-13
 ---
 
 # Honeybase forms
 
-A Honeybase form is a **SurveyJS survey definition (JSON)** stored in an organization's form library and attached to human tasks. The SPA renders it with `survey-core` **2.5.37**.
+A Honeybase form is a **SurveyJS survey definition (JSON)** stored in an organization's form library and attached to human tasks. The SPA renders it with `survey-core` **3.0.4**.
 
 Two things make writing one different from writing plain SurveyJS, and both are why this skill exists:
 
@@ -168,7 +168,7 @@ Also refused before any of that: a schema over **256 KB**, or one that is not va
 
 `survey-core` 2.x renamed a pile of properties. The old names are deprecated aliases that still resolve at runtime but are **absent from `references/surveyjs-subset.json`** and from SurveyJS's current docs — if you write one from memory you are writing against a schema nobody is checking. Use the 2.x name:
 
-| Wrong (1.x / invented) | Right (2.5.37) |
+| Wrong (1.x / invented) | Right (3.0.4) |
 |---|---|
 | `required` | `isRequired` |
 | `hasOther` / `hasNone` / `hasSelectAll` | `showOtherItem` / `showNoneItem` / `showSelectAllItem` |
@@ -207,7 +207,7 @@ Expression syntax:
 - Inside a `paneldynamic` template, reference a sibling in the **same panel** with `{panel.<name>}`; inside a `matrixdynamic` row, `{row.<colName>}`.
 - Operators: `= <> > >= < <=`, `and` `or` `not`, `empty` / `notempty`, `contains` / `notcontains` (arrays), `anyof` / `allof` (arrays), `*` `+` `-` `/`.
 - String literals take single quotes: `{failure_reasons} contains 'safety'`.
-- Functions (all verified present in 2.5.37): `iif(cond, a, b)`, `age()`, `today()`, `currentDate()`, `dateDiff()`, `dateAdd()`, `round()`, `sum()`, `avg()`, `min()`, `max()`, `sumInArray()`, `countInArray()`, `displayValue()`.
+- Functions (all verified present in 3.0.4): `iif(cond, a, b)`, `age()`, `today()`, `currentDate()`, `dateDiff()`, `dateAdd()`, `round()`, `sum()`, `avg()`, `min()`, `max()`, `sumInArray()`, `countInArray()`, `displayValue()`.
 - Watch out: a question that has never been answered is `empty`, and `{x} = false` is **false** for an unanswered boolean. Guard with `{x} notempty and ...` when that matters.
 
 Survey-level settings that interact with branching:
@@ -451,7 +451,7 @@ Unlike `paneldynamic`, **column names produce no extra keys**: `task.form.data.s
 
 ## Reference
 
-- **`references/surveyjs-subset.json`** — the authoritative property list: SurveyJS's own JSON Schema for survey definitions, generated from the installed `survey-core` 2.5.37 and subsetted to exactly what Honeybase accepts. Its `honeybase` block carries `allowedQuestionTypes` and `conditionalQuestionTypes`. Look a property up here before using it; if it is not in the definition for that type, do not write it.
+- **`references/surveyjs-subset.json`** — the authoritative property list: SurveyJS's own JSON Schema for survey definitions, generated from the installed `survey-core` 3.0.4 and subsetted to exactly what Honeybase accepts. Its `honeybase` block carries `allowedQuestionTypes` and `conditionalQuestionTypes`. Look a property up here before using it; if it is not in the definition for that type, do not write it.
   - Recipe: `jq '.definitions.paneldynamic' references/surveyjs-subset.json` for a type's own properties; each type inherits through its `allOf: [{"$ref": "question"}, …]` chain, so check the referenced bases too. `jq -r '.honeybase' …` for the allowlist.
   - `survey-core` is MIT © Devsoft Baltic OÜ; that file is a derived subset and keeps the attribution.
 - **Honeybase's own docs** at `https://docs.honeybase.ai` complement this bundle with prose and context: `https://docs.honeybase.ai/concepts/tasks-and-forms/` for how forms attach to tasks and flow downstream, and the wider [Concepts](https://docs.honeybase.ai/concepts/) pages. Keep checking property names against `references/surveyjs-subset.json` — it is the authoritative allowlist.
@@ -460,3 +460,7 @@ Unlike `paneldynamic`, **column names produce no extra keys**: `task.form.data.s
 ## Sharing this skill
 
 `.claude/skills/honeybase-forms/` is self-contained — copy it into any project's `.claude/skills/` (or `~/.claude/skills/`). It is also hosted at `https://honeybase.ai/skills/honeybase-forms/` (SKILL.md, references/surveyjs-subset.json, version.json — compare `version.json` with the `version:` line above to know when to re-download); the MCP `get_forms_skill` tool hands out those URLs and the `curl` commands. Pair it with `honeybase-graphql-api` if the integration also reads or writes tasks directly.
+
+## Changelog
+
+- 2026-09-13 — `survey-core` 2.x → 3.0.4; `references/surveyjs-subset.json` regenerated (property list only, no new guidance yet).
