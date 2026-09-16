@@ -46,7 +46,7 @@ The tool registry is large and versioned with the server, so it is the authorita
 The surfaces the tools cover (categories, not an exhaustive list — confirm with `tools/list`):
 
 - **Tasks** — list/get/create/update, the audit trail.
-- **Processes & workflows** — list processes, read a workflow (draft or released), save a draft, release; list and read **runs** (`list_runs` / run results are the debugging surface for a failed production run).
+- **Processes & workflows** — list processes, read a workflow (draft or released), save a draft, release; list and read **runs** (`list_runs` / run results are the debugging surface for a failed production run). A released version is immutable, but saving or releasing one does not fail: it creates a new row (a draft, or the next version) and the result's `forkedFrom` / `publicId` say so.
 - **Teams, schedules, availability** — membership, job schedules, availability state and reassignment.
 - **Agents & tools** — AI agents, their runs, their tool definitions.
 - **Forms** — list/create/update reusable form definitions.
